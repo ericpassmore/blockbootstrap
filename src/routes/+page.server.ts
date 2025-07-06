@@ -28,6 +28,7 @@ export const actions: Actions = {
 		return {
 			success: true,
 			forecasts: forecastService.forecasts,
+			allocations: allocations,
 			startingAmount: forecastService.startingAmount,
 			median: forecastService.median,
 			medianSeries: forecastService.medianSeries,

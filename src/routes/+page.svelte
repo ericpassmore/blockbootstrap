@@ -6,10 +6,10 @@
 	// This prop will receive the data returned from our server-side form action
 	export let form: PageData;
 
-	let startingAmount: number = 10000;
+	let startingAmount: number = form?.startingAmount || 10000;
 
 	// Define the asset classes for allocation
-	let allocations = [
+	let allocations = form?.allocations || [
 		{ key: 'sp500', label: 'S&P 500', value: 50 },
 		{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
 		{ key: 'TBill', label: 'T-Bill', value: 0 },
@@ -125,7 +125,7 @@
 
 	<!-- This form now submits data to the 'runForecast' action on the server -->
 	<form method="POST" action="?/runForecast">
-		<div class="form-group">
+		<div class="form-group starting-amount-group">
 			<label for="startingAmount">Starting Investment ($)</label>
 			<input
 				type="number"
@@ -159,8 +159,6 @@
 
 		<button type="submit" disabled={isInvalid}>Run Forecast</button>
 	</form>
-
-	<hr style="margin-top: 2rem" />
 
 	<!-- Results Section: This will only render when the form action returns data -->
 	{#if form?.success}

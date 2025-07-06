@@ -1,12 +1,38 @@
-.form-container {
+nav, footer {
+    background-color: #343a40;
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+nav a, footer a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+nav a:hover, footer a:hover {
+    color: #ced4da;
+}
+
+main {
+    padding: 1rem 0 3rem 0;
     max-width: 800px;
     margin: 2rem auto;
     padding: 1rem;
 }
+
 .form-group {
     margin-bottom: 1.25rem;
     display: flex;
     flex-direction: column;
+}
+.starting-amount-group label, .starting-amount-group input {
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
 }
 .allocation-item {
     flex-direction: row;
@@ -56,9 +82,9 @@ button:disabled {
     cursor: not-allowed;
 }
 .results-container {
+    border-top: 2px solid #ccc;
     margin-top: 2rem;
-    border-top: 1px solid #eee;
-    padding-top: 2rem;
+    padding-top: 1rem;
 }
 .summary {
     display: grid;
@@ -69,6 +95,7 @@ button:disabled {
     padding: 1rem;
     border-radius: 4px;
 }
+
 table {
     width: 100%;
     border-collapse: collapse;
