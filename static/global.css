@@ -1,0 +1,127 @@
+.form-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+.form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+.allocation-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+.allocation-item label {
+    width: 180px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.allocation-item input[type='range'] {
+    flex-grow: 1;
+}
+.allocation-item input[type='number'] {
+    width: 70px;
+    text-align: right;
+}
+.total-summary {
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+.total-summary.invalid {
+    color: #d9534f;
+    background-color: #f2dede;
+}
+.error-message {
+    font-weight: normal;
+}
+button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: #337ab7;
+    color: white;
+}
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.results-container {
+    margin-top: 2rem;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+}
+.summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background-color: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+th,
+td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+th {
+    background-color: #f2f2f2;
+}
+td.positive {
+    color: #28a745;
+}
+td.negative {
+    color: #dc3545;
+}
+.form-error {
+    color: #d9534f;
+    background-color: #f2dede;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+.chart-container {
+    position: relative;
+    /* By removing the fixed height, the container's height will now be determined
+        by the canvas, which respects the aspectRatio set in the chart options. */
+    width: 100%;
+    margin-bottom: 2rem;
+}
+#customLegend {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.legend-box.complete {
+  width: 15px;
+  height: 2px;
+  background: #7bade2;
+  display: inline-block;
+}
+.legend-line.incomplete {
+  width: 15px;
+  height: 2px;
+  background: #f5c77e;
+  display: inline-block;
+}
