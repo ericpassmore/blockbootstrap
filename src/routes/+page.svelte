@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import { onDestroy } from 'svelte';
 	import Chart from 'chart.js/auto'; // Simplified import for vanilla Chart.js
+
+	import type { PageData } from './$types';
 
 	// This prop will receive the data returned from our server-side form action
 	export let form: PageData;
@@ -118,10 +119,16 @@
 
 <div class="form-container">
 	<h1>Create Your Portfolio</h1>
-	<p>
+    <div class="instructions">
+	    <p>
 		Define your starting investment and allocate funds across different asset classes. The total
 		must equal 100%.
-	</p>
+	    </p>
+        <p class="disclaimer">
+           ⚠ Any information presented is intended purely for illustrative or entertainment 
+            purposes and should not be construed as financial advice.
+        </p>
+    </div>
 
 	<!-- This form now submits data to the 'runForecast' action on the server -->
 	<form method="POST" action="?/runForecast">
@@ -148,7 +155,6 @@
 
 		<!-- Hidden inputs to pass complex data to the server -->
 		<input type="hidden" name="allocations" value={JSON.stringify(allocations)} />
-		<input type="hidden" name="selectedBlock" value={1} />
 
 		<div class="total-summary" class:invalid={isInvalid}>
 			<strong>Total Allocation: {totalAllocation}%</strong>
@@ -166,10 +172,10 @@
 			<h2>Forecast Results</h2>
 			<div class="summary">
 				<p><strong>Starting Amount:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-                <p><strong>Q1 Amount:</strong> {currencyFormatter.format(form.q1)}</p>
-                <p><strong>Median Amount:</strong> {currencyFormatter.format(form.median)}</p>
-                <p><strong>Q3 Amount:</strong> {currencyFormatter.format(form.q3)}</p>
-                <p><strong>Simple Avg CAGR:</strong> {form.averageCAGR.toFixed(2)}%</p>
+                <p><strong>75% Chance Amount:</strong> {currencyFormatter.format(form.q1)}</p>
+                <p><strong>Middle Amount:</strong> {currencyFormatter.format(form.median)}</p>
+                <p><strong>25% Chance Amount:</strong> {currencyFormatter.format(form.q3)}</p>
+                <p><strong>Simple Avg CAGR:</strong> {form.averageCAGR.toFixed(2)}% <em>across all scenarios</em></p>
 			</div>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
@@ -181,6 +187,14 @@
 					<div class="legend-item">
 						<span class="legend-line incomplete"></span>
 						<span>Incomplete Results</span>
+					</div>
+                    <div class="legend-item">
+						<span class="legend-line quartile"></span>
+						<span>First and Third Quartile Results</span>
+					</div>
+                    <div class="legend-item">
+						<span class="legend-line median"></span>
+						<span>Median Results</span>
 					</div>
 				</div>
 				<canvas bind:this={canvasElement}></canvas>

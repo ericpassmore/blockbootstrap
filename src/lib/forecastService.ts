@@ -52,13 +52,7 @@ export class ForecastService {
 		const numberOfBlocks = blockData.getAllData().size;
 
 		for (let i = 1; i <= numberOfBlocks; i++) {
-			const block = blockData.getSeries(i);
-			if (!block || block.length === 0) {
-				console.warn(`Historical data for Block ${i} could not be found. Skipping.`);
-				continue;
-			}
-
-			const model = new ModelReturns(this.startingAmount, allocations, block);
+			const model = new ModelReturns(this.startingAmount, allocations, i);
 			const currentYear = new Date().getFullYear();
 			let taxes = 0;
 			for (const result of model.results) {

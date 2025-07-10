@@ -4,6 +4,7 @@ nav, footer {
     display: flex;
     gap: 1.5rem;
     align-items: center;
+    color: white;
 }
 
 nav a, footer a {
@@ -86,7 +87,7 @@ button:disabled {
     margin-top: 2rem;
     padding-top: 1rem;
 }
-.summary {
+.summary, .instructions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
@@ -94,6 +95,10 @@ button:disabled {
     background-color: #f9f9f9;
     padding: 1rem;
     border-radius: 4px;
+}
+.disclaimer {
+    padding: 0.5 rem;
+    font-style: italic;
 }
 
 table {
@@ -150,5 +155,17 @@ td.negative {
   width: 15px;
   height: 2px;
   background: #f5c77e;
+  display: inline-block;
+}
+.legend-line.quartile {
+  width: 15px;
+  height: 2px;
+  background: #337ab7;
+  display: inline-block;
+}
+.legend-line.median {
+  width: 15px;
+  height: 2px;
+  background: #000;
   display: inline-block;
 }

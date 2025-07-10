@@ -55,6 +55,17 @@ export class MarketDataService {
   }
 
   /**
+   * calculated a historical year based on block number and block index
+   * @param blockNumber
+   * @param yearIndex
+   * @returns historical 4 digit year
+   */
+  public getHistoricalYear(blockNumber: number, yearIndex: number): number {
+    // minus two because blockNumber and yearIndex start at One not Zero
+    return 1970 + blockNumber + yearIndex -2;
+  }
+
+  /**
    * Parses a string that may contain a percentage sign and returns it as a float.
    * @param value The string value to parse (e.g., "15.55%" or "-5.2%").
    * @returns The parsed floating-point number.

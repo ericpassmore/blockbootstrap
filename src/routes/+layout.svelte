@@ -1,7 +1,3 @@
-<script>
-  export let data;
-</script>
-
 <nav>
 	<a href="/tools">Tools</a>
 	<a href="/methodology">Methodology</a>

@@ -1,4 +1,5 @@
 <h1>Methodology Summary: Block Bootstrap Portfolio Return Forecasting</h1>
+<p><strong>Any forecasts presented are intended purely for illustrative or entertainment purposes and should not be construed as financial advice.</strong></p>
 <p>This model forecasts portfolio returns using a block bootstrap approach applied to 
     historical return data published by NYU Stern. Rather than randomly sampling individual 
     years—which can break the sequence of returns and distort variability—the 
@@ -29,4 +30,8 @@ and 2028—returns are not available and are assumed to have no year-over-year c
 Gold is commonly included in portfolio modeling. The return data begins in 1970, 
 when the United States exited the gold standard and currencies became free-floating, 
 establishing a modern market-driven price for gold.
+</p>
+<p>
+The methodology used to forecast Bitcoin prices should not be relied upon for investment decisions. 
+Bitcoin is an exceptionally volatile asset with dramatic price swings and a relatively short history of market data compared to traditional asset classes. This limited historical record makes any attempt to model or predict future prices highly speculative. 
 </p>
