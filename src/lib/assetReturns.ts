@@ -22,12 +22,36 @@ export class AssetReturns {
 
 	/**
 	 * Adds a record of the asset's performance for a specific year.
+	 * If negative return purchase is zero amount 
 	 * @param year The year of the performance data.
 	 * @param value The value of the asset for the upcoming year.
 	 * @param returnPercentage The percentage return of the asset for that year.
 	 */
-	public addRecord(year: number, value: number, returnPercentage: number): void {
+	public addRecord(year: number, assetPurchase: number, returnPercentage: number): void {
+		const value = assetPurchase>0 ? assetPurchase : 0
 		this.annualPerformance.push({ year, value, returnPercentage });
+	}
+
+	/**
+	 * Retrieves change in value of the asset for the specificed year.
+	 * @param year The year of the performance data.
+	 * @returns The change in value of the asset for the specified year.
+	 *          if no records returns zero
+	 */
+	public getAssetReturn (year: number): number {
+		const performance = this.annualPerformance.find((perf) => perf.year === year);
+		if (performance) {
+			return performance.value
+		}
+		return 0
+	}
+
+	/**
+	 * check if there are any records to processes
+	 * @returns true of there are records otherwise false
+	 */
+	public hasRecords(): boolean {
+		return this.annualPerformance.length > 0
 	}
 
     /** 

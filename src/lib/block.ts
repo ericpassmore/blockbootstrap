@@ -56,13 +56,16 @@ export class MarketDataService {
 
   /**
    * calculated a historical year based on block number and block index
-   * @param blockNumber
-   * @param yearIndex
+   * @param blockNumber The 1-based block number (e.g., 1-50).
+   * @param yearIndex The 1-based index within the block (e.g., 1-10).
    * @returns historical 4 digit year
+   * @throws {Error} if blockNumber or yearIndex are less than 1.
    */
   public getHistoricalYear(blockNumber: number, yearIndex: number): number {
-    // minus two because blockNumber and yearIndex start at One not Zero
-    return 1970 + blockNumber + yearIndex -2;
+    if (blockNumber < 1 || yearIndex < 1) {
+      throw new Error('blockNumber and yearIndex must be 1-based and cannot be less than 1.');
+    }
+    return 1970 + (blockNumber - 1) + (yearIndex - 1 );
   }
 
   /**

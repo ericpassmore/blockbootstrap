@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
 import { MarketDataService } from '$lib/block';
+import { AssetReturns } from '$lib/assetReturns';
 
 const treasueryYields = ConstantRateReturns;
 const marketData: MarketDataService = new MarketDataService();
@@ -68,3 +69,12 @@ describe('Value Market Data', () => {
         expect(lastYear.bitcoin).toBe(0)
     })
 });
+
+describe('Asset Returns', () => {
+    const treasuryPurchases: AssetReturns = new AssetReturns('treasury10Year', '10 Year Treasury');
+    it('initial totals match expected', () => {
+        treasuryPurchases.addRecord(1970,10000,7.79)
+        expect(treasuryPurchases.totalIncome()).toBeCloseTo(10000*7.79/100)
+    })
+})
+
