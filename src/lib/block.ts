@@ -16,6 +16,7 @@ export interface MarketData {
   gold: number;
   inflation: number;
   sp500DividendYield: number;
+  usSmallCapDividendYield: number;
   bitcoin: number;
 }
 
@@ -100,6 +101,7 @@ export class MarketDataService {
         const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
         const seriesKey = parseInt(values[0], 10);
 
+        // could not find historical dividend yield for small cap so made a constant 
         const marketData: MarketData = {
           year: parseInt(values[1], 10),
           sp500: this.parsePercentage(values[2]),
@@ -111,6 +113,7 @@ export class MarketDataService {
           gold: this.parsePercentage(values[8]),
           inflation: this.parsePercentage(values[9]),
           sp500DividendYield: this.parsePercentage(values[10]),
+          usSmallCapDividendYield: 1.5,
           bitcoin: this.parsePercentage(values[11]),
         };
 

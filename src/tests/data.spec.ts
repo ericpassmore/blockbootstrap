@@ -10,12 +10,12 @@ const marketData: MarketDataService = new MarketDataService();
 describe('Value Treasury Rates', () => {
     it('all greater then zero', () => {
         for (let year = 1970; year <= 2025; year++) {
-            expect(treasueryYields.getYield(year)).toBeGreaterThan(0);
+            expect(treasueryYields.getYield(year, 'treasury10Year')).toBeGreaterThan(0);
         }
     });
     it('first and last values ok', () => {
-        expect(treasueryYields.getYield(1970)).toBe(7.79);
-        expect(treasueryYields.getYield(2025)).toBe(4.63);
+        expect(treasueryYields.getYield(1970, 'treasury10Year')).toBe(7.79);
+        expect(treasueryYields.getYield(2025, 'treasury10Year')).toBe(4.63);
     })
 });
 

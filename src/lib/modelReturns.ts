@@ -35,7 +35,9 @@ export class ModelReturns {
     public startingAmount: number;
     private taxModel: Taxes;
     private treasuryPurchases: AssetReturns = new AssetReturns('treasury10Year', '10 Year Treasury');
+    private baaCorpPurchases: AssetReturns = new AssetReturns('baaCorp', 'BAA Corporate Bonds');
     // Using static methods from ConstantRateReturns directly
+    // Note: baaCorpPurchases added to track purchases and reinvest income similarly to treasury10Year
 
 
     /**
@@ -65,6 +67,7 @@ export class ModelReturns {
             const startOfYearValue = currentPortfolioValue;
             // series starts at one not zero so adjust down by 1
             const historicalReferenceYear = blockData.getHistoricalYear(blockNumber, yearData.year)
+            const lastYear = historicalReferenceYear - 1;
             let ordinaryIncome = 0;
             let dividendIncome = 0;
             let endOfYearValue = 0;
@@ -78,18 +81,30 @@ export class ModelReturns {
                 // Identify and sum up different types of income for tax purposes
                 switch (key) {
                     case 'TBill':
-                    case 'baaCorp':
                         ordinaryIncome += assetStartValue * (assetReturnPercentage / 100);
                         break;
+                    case 'baaCorp':
+                        let thisYearBaaCorpIncome = 0;
+                        // to initialize if there are no records
+                        // no records, either first time or previous years have negative returns
+                        if (!this.baaCorpPurchases.hasRecords()) {
+                            this._addBaaCorpPurchase(historicalReferenceYear, assetStartValue);
+                        } else {
+                            // income from the previous year used to purchase this year's items
+                            thisYearBaaCorpIncome = this.baaCorpPurchases.getChangeInValue(lastYear);
+                            this._addBaaCorpPurchase(historicalReferenceYear, thisYearBaaCorpIncome);
+                        }
+                        ordinaryIncome += this.baaCorpPurchases.totalIncome();
+                        break;
+                        // Note: Updated baaCorp to track historical purchases and reinvest income like treasury10Year
                     case 'treasury10Year':
-                        let thisYearTreasuryIncome = 0
-                        // to initalize if there are no records
+                        let thisYearTreasuryIncome = 0;
+                        // to initialize if there are no records
                         // no records, either first time or previous years have negative returns
                         if (!this.treasuryPurchases.hasRecords()) {
                             this._addTreasuryPurchase(historicalReferenceYear, assetStartValue);
                         } else {
-                            // income from the previous year used to purchase this year's items 
-                            const lastYear = historicalReferenceYear - 1
+                            // income from the previous year used to purchase this year's items
                             thisYearTreasuryIncome = this.treasuryPurchases.getChangeInValue(lastYear);
                             this._addTreasuryPurchase(historicalReferenceYear, thisYearTreasuryIncome);
                         }
@@ -98,6 +113,10 @@ export class ModelReturns {
                     case 'sp500':
                         const dividendYield = yearData.sp500DividendYield || 0;
                         dividendIncome += assetStartValue * (dividendYield / 100);
+                        break;
+                    case 'usSmallCap':
+                        const smallCapDividendYield = yearData.usSmallCapDividendYield || 0;
+                        dividendIncome += assetStartValue * (smallCapDividendYield / 100);
                         break;
                 }
 
@@ -145,12 +164,22 @@ export class ModelReturns {
     }
 
     private _addTreasuryPurchase(historicalReferenceYear: number, purchaseAmount: number): void {
-        const treasuryYield = ConstantRateReturns.getYield(historicalReferenceYear);
+        const treasuryYield = ConstantRateReturns.getYield(historicalReferenceYear, 'treasury10Year');
         // income is used to purchase new 10yr Treasury
         this.treasuryPurchases.addRecord(
             historicalReferenceYear,
             purchaseAmount,
             treasuryYield
+        );
+    }
+
+    private _addBaaCorpPurchase(historicalReferenceYear: number, purchaseAmount: number): void {
+        const baaCorpYield = ConstantRateReturns.getYield(historicalReferenceYear, 'baaCorp');
+        // income is used to purchase new BAA Corporate Bonds
+        this.baaCorpPurchases.addRecord(
+            historicalReferenceYear,
+            purchaseAmount,
+            baaCorpYield
         );
     }
 
