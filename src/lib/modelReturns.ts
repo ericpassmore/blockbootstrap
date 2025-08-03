@@ -88,8 +88,9 @@ export class ModelReturns {
                         if (!this.treasuryPurchases.hasRecords()) {
                             this._addTreasuryPurchase(historicalReferenceYear, assetStartValue);
                         } else {
-                            // income from this year 
-                            thisYearTreasuryIncome = this.treasuryPurchases.totalIncome();
+                            // income from the previous year used to purchase this year's items 
+                            const lastYear = historicalReferenceYear - 1
+                            thisYearTreasuryIncome = this.treasuryPurchases.getChangeInValue(lastYear);
                             this._addTreasuryPurchase(historicalReferenceYear, thisYearTreasuryIncome);
                         }
                         ordinaryIncome += this.treasuryPurchases.totalIncome();
@@ -143,14 +144,12 @@ export class ModelReturns {
         return assetValues;
     }
 
-    private _addTreasuryPurchase(historicalReferenceYear: number, thisYearTreasuryIncome: number): void {
-        // income this year used to purchase next year's 
-        const nextYear = historicalReferenceYear + 1;   
-        const treasuryYield = ConstantRateReturns.getYield(nextYear);
+    private _addTreasuryPurchase(historicalReferenceYear: number, purchaseAmount: number): void {
+        const treasuryYield = ConstantRateReturns.getYield(historicalReferenceYear);
         // income is used to purchase new 10yr Treasury
         this.treasuryPurchases.addRecord(
-            nextYear,
-            thisYearTreasuryIncome,
+            historicalReferenceYear,
+            purchaseAmount,
             treasuryYield
         );
     }

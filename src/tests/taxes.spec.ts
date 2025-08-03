@@ -28,6 +28,6 @@ describe('Taxes', () => {
 
         // We expect some ordinary income from treasuries each year, which should result in taxes.
         const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-        expect(totalTaxes, `Total taxes for block 9 should be close to $868`).toBeCloseTo(868.23,2);
+        expect(totalTaxes, `Total taxes for block 9 should be close to $8682.34`).toBeCloseTo(8682.34,2);
     })
 })

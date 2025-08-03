@@ -33,15 +33,29 @@ export class AssetReturns {
 	}
 
 	/**
+	 * Retrieves amount invested in a specific year.
+	 * @param year The year of the performance data.
+	 * @returns The amount invested in a specific year.
+	 *          if no records returns zero
+	 */
+	public getAssetValue (year: number): number {
+		const performance = this.annualPerformance.find((perf) => perf.year === year);
+		if (performance) {
+			return performance.value
+		}
+		return 0
+	}
+
+	/**
 	 * Retrieves change in value of the asset for the specificed year.
 	 * @param year The year of the performance data.
 	 * @returns The change in value of the asset for the specified year.
 	 *          if no records returns zero
 	 */
-	public getAssetReturn (year: number): number {
+	public getChangeInValue (year: number): number {
 		const performance = this.annualPerformance.find((perf) => perf.year === year);
 		if (performance) {
-			return performance.value
+			return performance.value * performance.returnPercentage/100
 		}
 		return 0
 	}
