@@ -1,10 +1,38 @@
-import { ModelReturns, type Allocation } from '$lib/modelReturns';
-import { fail, type Actions } from '@sveltejs/kit';
+import { type Allocation } from '$lib/modelReturns';
+import { fail } from '@sveltejs/kit';
 import { ForecastService } from '$lib/forecastService';
+import type { Actions } from './$types';
+import { BREVO_API_KEY } from '$env/static/private';
+import { db } from '$lib/db';      // your Drizzle DB instance
+import { User } from '$lib/user';  // adjust path as needed
 
 export const actions: Actions = {
+	login: async ({ request }) => {
+		const data = await request.formData();
+		const email = data.get('email')?.toString();
+
+		if (!email || !email.includes('@')) {
+			return { success: false, error: 'Please enter a valid email address.' };
+		}
+		const user = new User(email, db);
+
+		// Check if user exists
+		const existingUser = await user.get();
+
+		if (existingUser) {
+			// Generate a new 6-digit code and update
+			const newCode = Math.floor(100000 + Math.random() * 900000);
+			await user.setCode(newCode);
+		} else {
+			// Create user (constructor already sets code)
+			await user.create();
+		}
+		await user.sendVerificationEmail(BREVO_API_KEY);
+
+		return { success: true };
+	},
 	runForecast: async ({ request }) => {
-        
+
 		const formData = await request.formData();
 		const startingAmount = Number(formData.get('startingAmount'));
 		const allocationsJSON = formData.get('allocations');
@@ -36,7 +64,7 @@ export const actions: Actions = {
 			q1Series: forecastService.q1Series,
 			q3: forecastService.q3,
 			q3Series: forecastService.q3Series,
-            averageCAGR: forecastService.averageCAGR
+			averageCAGR: forecastService.averageCAGR
 		};
 	}
 };

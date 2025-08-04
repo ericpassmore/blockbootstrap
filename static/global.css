@@ -18,6 +18,16 @@ nav a:hover, footer a:hover {
     color: #ced4da;
 }
 
+.nav-home-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: white;           /* match your nav link color */
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
 main {
     padding: 1rem 0 3rem 0;
     max-width: 800px;
@@ -168,4 +178,8 @@ td.negative {
   height: 2px;
   background: #000;
   display: inline-block;
+}
+
+.material-icons {
+    font-size: 1.2rem;
 }
