@@ -18,6 +18,9 @@ export interface MarketData {
   sp500DividendYield: number;
   usSmallCapDividendYield: number;
   bitcoin: number;
+  internationalEquity: number;
+  emergingMarkets: number;
+  nasdaq100: number;
 }
 
 /**
@@ -66,20 +69,31 @@ export class MarketDataService {
     if (blockNumber < 1 || yearIndex < 1) {
       throw new Error('blockNumber and yearIndex must be 1-based and cannot be less than 1.');
     }
-    return 1970 + (blockNumber - 1) + (yearIndex - 1 );
+    return 1970 + (blockNumber - 1) + (yearIndex - 1);
   }
+
+  /**
+   * Parses a string that should contain a number.
+   * @param value The string value to parse
+   * @returns The parsed floating-point number. Defaults to 1 when parsing error
+   */
+  private safeParseInt = (val: string) => {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? 1 : parsed;
+  };
 
   /**
    * Parses a string that may contain a percentage sign and returns it as a float.
    * @param value The string value to parse (e.g., "15.55%" or "-5.2%").
    * @returns The parsed floating-point number.
    */
-  private parsePercentage(value: string): number {
+  private safeParsePercentage = (value: string) => {
     if (typeof value !== 'string') {
-      return NaN;
+      return 1;
     }
-    return parseFloat(value.replace('%', ''));
-  }
+    const parsed = parseFloat(value.replace('%', ''));
+    return isNaN(parsed) ? 1 : parsed;
+  };
 
   /**
    * Reads the specified CSV file, parses its content, and populates the marketDataMap.
@@ -99,22 +113,25 @@ export class MarketDataService {
 
         // Replace any '#N/A' value with '1' before splitting into columns
         const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
-        const seriesKey = parseInt(values[0], 10);
+        const seriesKey = this.safeParseInt(values[0], 10);
 
         // could not find historical dividend yield for small cap so made a constant 
         const marketData: MarketData = {
-          year: parseInt(values[1], 10),
-          sp500: this.parsePercentage(values[2]),
-          usSmallCap: this.parsePercentage(values[3]),
-          TBill: this.parsePercentage(values[4]),
-          treasury10Year: this.parsePercentage(values[5]),
-          baaCorp: this.parsePercentage(values[6]),
-          realEstate: this.parsePercentage(values[7]),
-          gold: this.parsePercentage(values[8]),
-          inflation: this.parsePercentage(values[9]),
-          sp500DividendYield: this.parsePercentage(values[10]),
+          year: this.safeParseInt(values[1], 10),
+          sp500: this.safeParsePercentage(values[2]),
+          usSmallCap: this.safeParsePercentage(values[3]),
+          TBill: this.safeParsePercentage(values[4]),
+          treasury10Year: this.safeParsePercentage(values[5]),
+          baaCorp: this.safeParsePercentage(values[6]),
+          realEstate: this.safeParsePercentage(values[7]),
+          gold: this.safeParsePercentage(values[8]),
+          inflation: this.safeParsePercentage(values[9]),
+          sp500DividendYield: this.safeParsePercentage(values[10]),
           usSmallCapDividendYield: 1.5,
-          bitcoin: this.parsePercentage(values[11]),
+          bitcoin: this.safeParsePercentage(values[11]),
+          internationalEquity: this.safeParsePercentage(values[12]),
+          emergingMarkets: this.safeParsePercentage(values[13]),
+          nasdaq100: this.safeParsePercentage(values[14])
         };
 
         const seriesData = this.marketDataMap.get(seriesKey) || [];

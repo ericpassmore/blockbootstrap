@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ModelReturns, type Allocation } from '$lib/modelReturns';
 
-describe('Taxes', () => {
+describe('Taxes/Appreciation', () => {
     it('treasury taxes are always greater than zero for the first 40 blocks', () => {
         const allocations: Allocation[] = [
             { key: 'treasury10Year', label: '10-Year Treasury', value: 100 }
@@ -57,5 +57,15 @@ describe('Taxes', () => {
         expect(totalTaxes, `Total taxes for block 4 with 100% sp500should be close to $8682.34`).toBeCloseTo(10862.77,2);
         const terminatingValue = model.results[9].endValue;
         expect(terminatingValue, `Terminating value for block 4 with 100% sp500 191232.78`).toBeCloseTo(191232.78,2);
+    })
+    it('bitcoin allocation in Block 1 should be ok', () => {
+        const allocations: Allocation[] = [
+            { key: 'bitcoin', label: 'Bitcoin', value: 100 }
+        ];
+        const startingAmount = 100000;
+        const model = new ModelReturns(startingAmount, allocations, 1);
+        expect(model.finalValue).toBeTypeOf('number')
+        expect(model.finalValue).not.toBeNaN()
+        expect(model.finalValue).toBeGreaterThan(5000)
     })
 })

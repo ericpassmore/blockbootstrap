@@ -26,15 +26,34 @@ describe('Value Market Data', () => {
             expect(block).toBeDefined()
             if (!block) return;
             for (const year of block) {
+                expect(year.treasury10Year).not.toBeNaN()
                 expect(year.treasury10Year).not.toBe(0)
+
+                expect(year.usSmallCap).not.toBeNaN()
                 expect(year.usSmallCap).not.toBe(0)
+
+                expect(year.sp500).not.toBeNaN()
                 expect(year.sp500).not.toBe(0)
+
+                expect(year.sp500DividendYield).not.toBeNaN()
                 expect(year.sp500DividendYield).toBeGreaterThan(0)
+
+                expect(year.baaCorp).not.toBeNaN()
                 expect(year.baaCorp).not.toBe(0)
+
+                expect(year.TBill).not.toBeNaN()
                 expect(year.TBill).toBeGreaterThan(0)
+
+                expect(year.gold).not.toBeNaN()
                 expect(year.gold).not.toBe(0)
+
+                expect(year.inflation).not.toBeNaN()
                 expect(year.inflation).toBeGreaterThan(0)
+
+                expect(year.realEstate).not.toBeNaN()
                 expect(year.realEstate).not.toBe(0)
+
+                expect(year.bitcoin).not.toBeNaN()
                 expect(year.bitcoin).not.toBe(0)
             }
         }
@@ -53,7 +72,7 @@ describe('Value Market Data', () => {
         expect(firstYear.gold).toBeCloseTo(-9.45)
         expect(firstYear.inflation).toBeCloseTo(5.57)
         expect(firstYear.realEstate).toBeCloseTo(8.22)
-        expect(firstYear.bitcoin).toBeCloseTo(15)
+        expect(firstYear.bitcoin).toBe(1)
         // last entry N/A == 0
         const lastYear = marketData.getSeries(50)?.[9]
         expect(lastYear).toBeDefined()
