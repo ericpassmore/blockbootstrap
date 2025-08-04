@@ -11,14 +11,14 @@
 
 	// Define the asset classes for allocation
 	let allocations = form?.allocations || [
-		{ key: 'sp500', label: 'S&P 500', value: 50 },
+		{ key: 'sp500', label: 'S&P 500', value: 45 },
 		{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
 		{ key: 'TBill', label: 'T-Bill', value: 0 },
 		{ key: 'treasury10Year', label: '10-Year Treasury', value: 10 },
 		{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
-		{ key: 'realEstate', label: 'Real Estate', value: 10 },
+		{ key: 'realEstate', label: 'Real Estate', value: 20 },
 		{ key: 'gold', label: 'Gold', value: 5 },
-		{ key: 'bitcoin', label: 'Bitcoin', value: 5 }
+		{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
 	];
 
 	// Reactive calculation for the total allocation
@@ -184,10 +184,10 @@
 			<h3>Your Results</h3>
 			<p>Here’s a summary of your allocation and projections based on the inputs above:</p>
 			<div class="summary">
-				<p><strong>Starting Amount:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-				<p><strong>Projected Estimate:</strong> {currencyFormatter.format(form.median)}</p>
-				<p><strong>Conservative Estimate:</strong> {currencyFormatter.format(form.q1)}</p>
-				<p><strong>Top Estimate:</strong> {currencyFormatter.format(form.q3)}</p>
+				<p><strong>Starting Amt:</strong> {currencyFormatter.format(form.startingAmount)}</p>
+				<p><strong>Projected Est:</strong> {currencyFormatter.format(form.median)}</p>
+				<p><strong>Conservative Est:</strong> {currencyFormatter.format(form.q1)}</p>
+				<p><strong>Top Est:</strong> {currencyFormatter.format(form.q3)}</p>
 				<p>
 					<strong>Simple Avg CAGR:</strong>
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
