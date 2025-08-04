@@ -1,7 +1,8 @@
-import { users } from '../../../../db/schema';
+import { users } from '$lib/../db/schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/db';
+import { CodeGenerator } from '$lib/codeGenerator';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!params.code) return { codeOk: false, status: 400, error: 'No verification code provided' };
@@ -16,11 +17,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const updates: { lastLoginDate: Date, firstLoginDate?: Date } = { lastLoginDate: now };
 
 	if (!user.firstLoginDate) { updates.firstLoginDate = now; }
-		
-	await db.update(users).set(updates).where(eq(users.id, user.id));
-			
-	// Set a local store variable 'verify' with the code
-	locals.verify = code.toString();
 
-	return { codeOk: true, status: 200, error: null }
+	await db.update(users).set(updates).where(eq(users.id, user.id));
+
+	return { codeOk: true, status: 200, token: CodeGenerator.getToken(), error: null }
 };

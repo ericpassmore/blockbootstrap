@@ -1,5 +1,6 @@
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { CodeGenerator } from './codeGenerator';
 import {
     SendSmtpEmail, TransactionalEmailsApi,
     TransactionalEmailsApiApiKeys
@@ -10,12 +11,14 @@ import { BREVO_API_KEY } from '$env/static/private';
 export class User {
     private email: string;
     private code: number;
+    private token: string;
     private db: any;
 
 
     constructor(email: string, db: any) {
         this.email = email;
-        this.code = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit code
+        this.code = CodeGenerator.getCode() // Generate a 6-digit code
+        this.token = CodeGenerator.getToken(); // Generate a token
         this.db = db;
     }
 
@@ -53,6 +56,13 @@ export class User {
      */
     getCode(): number {
         return this.code;
+    }
+
+    /**
+     * Retrieves the token code for the user.
+     */
+    getToken(): string {
+        return this.token;
     }
 
     /**

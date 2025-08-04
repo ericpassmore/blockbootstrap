@@ -31,32 +31,42 @@
 		currency: 'USD'
 	});
 
+	// helper to align colors from css
+	function getCSSVar(name) {
+		// Read value of a CSS variable (e.g., '--legend-incomplete-color')
+		return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+	}
+
 	// --- Chart.js Vanilla Implementation ---
 	let canvasElement: HTMLCanvasElement;
 	let chartInstance: Chart | null = null;
 
-    function selectChartColor(
-        blockNumber: number, 
-        medianBlockNum: number, 
-        q1BlockNum: number, 
-        q3BlockNum: number
-    ) {
-        if (blockNumber > 46) {
-            return '#f5c77e';
-        }
-        if (blockNumber === medianBlockNum) {
-            return '#000000';
-        }
-        if (blockNumber === q1BlockNum || blockNumber === q3BlockNum) {
-            return '#337ab7';
-        }
-        return '#C4D7ED';
-    }
+	function selectChartColor(
+		blockNumber: number,
+		medianBlockNum: number,
+		q1BlockNum: number,
+		q3BlockNum: number
+	) {
+		const legendIncomplete = getCSSVar('--legend-incomplete-color');
+		const legendMedian = getCSSVar('--legend-median-color');
+		const legendQuartile = getCSSVar('--legend-quartile-color');
+		const legendComplete = getCSSVar('--legend-complete-color');
+
+		if (blockNumber > 46) {
+			return legendIncomplete;
+		}
+		if (blockNumber === medianBlockNum) {
+			return legendMedian;
+		}
+		if (blockNumber === q1BlockNum || blockNumber === q3BlockNum) {
+			return legendQuartile;
+		}
+		return legendComplete;
+	}
 
 	// This reactive block creates, updates, or destroys the chart
 	// based on the availability of form results.
 	$: if (form?.success && canvasElement) {
-
 		const chartData = {
 			// Use labels from the first forecast, assuming they are all the same length
 			labels: ['Start', ...form.forecasts[0].results.map((r) => r.year)],
@@ -65,11 +75,11 @@
 				data: [form.startingAmount, ...forecast.results.map((r) => r.endValue)],
 				// series 46 and greater have partial data
 				borderColor: selectChartColor(
-                    forecast.blockNumber,
-                    form.medianSeries,
-                    form.q1Series,
-                    form.q3Series
-                ),
+					forecast.blockNumber,
+					form.medianSeries,
+					form.q1Series,
+					form.q3Series
+				),
 				borderWidth: 2,
 				backgroundColor: 'transparent',
 				fill: false, // 'fill: false' is better for comparing multiple lines
@@ -119,16 +129,16 @@
 
 <div class="form-container">
 	<h1>Create Your Portfolio</h1>
-    <div class="instructions">
-	    <p>
-		Define your starting investment and allocate funds across different asset classes. The total
-		must equal 100%.
-	    </p>
-        <p class="disclaimer">
-           ⚠ Any information presented is intended purely for illustrative or entertainment 
-            purposes and should not be construed as financial advice.
-        </p>
-    </div>
+	<div class="instructions">
+		<p>
+			Define your starting investment and allocate funds across different asset classes. The total
+			must equal 100%.
+		</p>
+		<p class="disclaimer">
+			⚠ Any information presented is intended purely for illustrative or entertainment purposes and
+			should not be construed as financial advice.
+		</p>
+	</div>
 
 	<!-- This form now submits data to the 'runForecast' action on the server -->
 	<form method="POST" action="?/runForecast">
@@ -172,10 +182,13 @@
 			<h2>Forecast Results</h2>
 			<div class="summary">
 				<p><strong>Starting Amount:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-                <p><strong>75% Chance Amount:</strong> {currencyFormatter.format(form.q1)}</p>
-                <p><strong>Middle Amount:</strong> {currencyFormatter.format(form.median)}</p>
-                <p><strong>25% Chance Amount:</strong> {currencyFormatter.format(form.q3)}</p>
-                <p><strong>Simple Avg CAGR:</strong> {form.averageCAGR.toFixed(2)}% <em>across all scenarios</em></p>
+				<p><strong>75% Chance Amount:</strong> {currencyFormatter.format(form.q1)}</p>
+				<p><strong>Middle Amount:</strong> {currencyFormatter.format(form.median)}</p>
+				<p><strong>25% Chance Amount:</strong> {currencyFormatter.format(form.q3)}</p>
+				<p>
+					<strong>Simple Avg CAGR:</strong>
+					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
+				</p>
 			</div>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
@@ -188,11 +201,11 @@
 						<span class="legend-line incomplete"></span>
 						<span>Incomplete Results</span>
 					</div>
-                    <div class="legend-item">
+					<div class="legend-item">
 						<span class="legend-line quartile"></span>
 						<span>First and Third Quartile Results</span>
 					</div>
-                    <div class="legend-item">
+					<div class="legend-item">
 						<span class="legend-line median"></span>
 						<span>Median Results</span>
 					</div>

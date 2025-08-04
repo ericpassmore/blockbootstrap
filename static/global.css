@@ -1,31 +1,56 @@
+:root {
+    --primary-background-color: white;
+    --primary-foreground-color: black;
+    --primary-header-color: #f2f2f2;
+    --primary-highligh-color: #f9f9f9;
+    --secondary-background-color: #343a40;
+    --secondary-foreground-color: white;
+    --secondary-highligh-color: #ced4da;
+    --disabled-color: #ccc;
+    --error-foreground-color: #d9534f;
+    --error-background-color: #f2dede;
+    --action-color: #337ab7;
+    --action-hover-color: #286090;
+    --action-cancel-color: #6c757d;
+    --action-cancel-hover-color: #5a6268;
+    --success-foreground-color: #28a745;
+    --success-background-color: #eaf6ec;
+    --legend-complete-color: #C4D7ED;
+    --legend-incomplete-color: #f5c77e;
+    --legend-quartile-color: #337ab7;
+    --legend-median-color: #000;
+    --shadow-color-dark: rgba(0, 0, 0, 0.5);
+    --shadow-color-light: rgba(0, 0, 0, 0.1);
+}
+
 nav, footer {
-    background-color: #343a40;
+    background-color: var(--secondary-background-color);
     padding: 1rem 2rem;
     display: flex;
     gap: 1.5rem;
     align-items: center;
-    color: white;
+    color: var(--secondary-foreground-color);
 }
 
 nav a, footer a {
-    color: white;
+    color: var(--secondary-foreground-color);
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: 500;
 }
 
 nav a:hover, footer a:hover {
-    color: #ced4da;
+    color: var(--secondary-highligh-color);
 }
 
 .nav-home-link {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: white;           /* match your nav link color */
-  text-decoration: none;
-  font-size: 1.1rem;
-  font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--secondary-foreground-color);
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
 main {
@@ -33,6 +58,11 @@ main {
     max-width: 800px;
     margin: 2rem auto;
     padding: 1rem;
+}
+
+body {
+    color: var(--primary-foreground-color);
+    background-color: var(--primary-background-color);
 }
 
 .form-group {
@@ -72,8 +102,8 @@ main {
     transition: all 0.2s ease-in-out;
 }
 .total-summary.invalid {
-    color: #d9534f;
-    background-color: #f2dede;
+    color: var(--error-foreground-color);
+    background-color: var(--error-background-color);
 }
 .error-message {
     font-weight: normal;
@@ -85,15 +115,16 @@ button {
     cursor: pointer;
     border: none;
     border-radius: 4px;
-    background-color: #337ab7;
-    color: white;
+    background-color: var(--action-color);
+    color: var(--secondary-foreground-color);
 }
 button:disabled {
-    background-color: #ccc;
+    background-color: var(--disabled-color);
     cursor: not-allowed;
 }
+
 .results-container {
-    border-top: 2px solid #ccc;
+    border-top: 2px solid var(--disabled-color);
     margin-top: 2rem;
     padding-top: 1rem;
 }
@@ -102,7 +133,7 @@ button:disabled {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
     margin-bottom: 1.5rem;
-    background-color: #f9f9f9;
+    background-color: var(--primary-highligh-color);
     padding: 1rem;
     border-radius: 4px;
 }
@@ -120,20 +151,27 @@ th,
 td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--primary-highligh-color);;
 }
 th {
-    background-color: #f2f2f2;
+    background-color: var(--primary-header-color);
 }
 td.positive {
-    color: #28a745;
+    color: var(--success-foreground-color);
 }
 td.negative {
-    color: #dc3545;
+    color: var(--error-foreground-color);
 }
-.form-error {
-    color: #d9534f;
-    background-color: #f2dede;
+.form-error-message {
+    color: var(--error-foreground-color);
+    background-color: var(--error-background-color);
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+.form-success-message {
+    color: var(--success-foreground-color);
+    background-color: var(--success-background-color);
     padding: 0.75rem;
     border-radius: 4px;
     margin-top: 1rem;
@@ -158,25 +196,25 @@ td.negative {
 .legend-box.complete {
   width: 15px;
   height: 2px;
-  background: #7bade2;
+  background: var(--legend-complete-color);
   display: inline-block;
 }
 .legend-line.incomplete {
   width: 15px;
   height: 2px;
-  background: #f5c77e;
+  background: var(--legend-incomplete-color);
   display: inline-block;
 }
 .legend-line.quartile {
   width: 15px;
   height: 2px;
-  background: #337ab7;
+  background: var(--legend-quartile-color);
   display: inline-block;
 }
 .legend-line.median {
   width: 15px;
   height: 2px;
-  background: #000;
+  background: var(--legend-median-color);
   display: inline-block;
 }
 

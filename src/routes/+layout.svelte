@@ -3,7 +3,34 @@
 	import { enhance } from '$app/forms';
 
 	let isLoginPopoverOpen = $state(false);
+	let emailSubmissionSuccessfull = $state(false);
 	let message = $state('');
+
+	// Track login state
+	let isLoggedIn = $state(false);
+
+	// Check localStorage for token when component loads
+	$effect(() => {
+		isLoggedIn = !!localStorage.getItem('token');
+	});
+
+	// Optional: expose a logout handler
+	function handleLoginButtonClick() {
+		if (isLoggedIn) {
+			// Logout logic: remove token and update state
+			localStorage.removeItem('token');
+			isLoggedIn = false;
+		} else {
+			// Open login popover
+			isLoginPopoverOpen = true;
+		}
+	}
+
+	function closePopup() {
+		isLoginPopoverOpen = false;
+		message = '';
+		emailSubmissionSuccessfull = false;
+	}
 </script>
 
 <nav>
@@ -13,8 +40,9 @@
 	</a>
 	<a href="/tools">Tools</a>
 	<a href="/methodology">Methodology</a>
-	<button class="login-button" onclick={() => (isLoginPopoverOpen = true)}>
-		<span class="material-icons">person</span> Login
+	<button class={isLoggedIn ? 'logout-button' : 'login-button'} id="login-button" onclick={handleLoginButtonClick}>
+		<span class="material-icons">person</span>
+		{isLoggedIn ? 'Logout' : 'Login'}
 	</button>
 </nav>
 
@@ -30,25 +58,33 @@
 				method="POST"
 				action="?/login"
 				use:enhance={() => {
-          return async ({ update, result }) => {
-            await update({ reset: false });
-					    // Clear old message
-					    message = '';
-
-					    if (result.type === 'success') {
-						    message = 'Check your email for the verification code.';
-              } else if (result.type === 'failure') {
-						    message = result.data.error;
-					    }
-				}}}
+					return async ({ update, result }) => {
+						await update({ reset: false });
+						// Clear old message
+						message = '';
+						if (result.type === 'success') {
+							emailSubmissionSuccessfull = true;
+							message = 'Check your email for the verification code.';
+						} else if (result.type === 'failure') {
+							message = result.data.error;
+						}
+						if (message) {
+							setTimeout(closePopup, 2500);
+						}
+					};
+				}}
 			>
 				<div class="form-group">
 					<label for="email">Email Address</label>
 					<input type="email" id="email" name="email" required />
 				</div>
 
-        {#if message}
-					<div class="form-error">{message}</div>
+				{#if message}
+					{#if emailSubmissionSuccessfull}
+						<div class="form-success-message">{message}</div>
+					{:else}
+						<div class="form-error-message">{message}</div>
+					{/if}
 				{/if}
 
 				<button type="submit">Submit</button>

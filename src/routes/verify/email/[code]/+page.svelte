@@ -1,11 +1,15 @@
 <script lang="ts">
-	 import { goto } from '$app/navigation';
-    let {data} = $props();
-    let isVerified = $state(false);;
+	import { goto } from '$app/navigation';
+	let { data } = $props();
+	let isVerified = $state(false);
 
-    // Simulate verification process based on data received
+	// Simulate verification process based on data received
 	if (data.codeOk && data.status === 200) {
 		isVerified = true;
+		if (typeof window !== 'undefined' && data.token ) {
+			// Set a local store variable
+			localStorage.setItem('token', data.token);
+		}
 	}
 </script>
 
