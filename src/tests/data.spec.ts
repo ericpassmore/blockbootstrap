@@ -55,6 +55,15 @@ describe('Value Market Data', () => {
 
                 expect(year.bitcoin).not.toBeNaN()
                 expect(year.bitcoin).not.toBe(0)
+
+                expect(year.internationalEquity).not.toBeNaN()
+                expect(year.internationalEquity).not.toBe(0)
+
+                expect(year.emergingMarkets).not.toBeNaN()
+                expect(year.emergingMarkets).not.toBe(0)
+
+                expect(year.nasdaq100).not.toBeNaN()
+                expect(year.nasdaq100).not.toBe(0)
             }
         }
     });
