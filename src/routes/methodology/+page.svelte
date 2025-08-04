@@ -1,37 +1,73 @@
-<h1>Methodology Summary: Block Bootstrap Portfolio Return Forecasting</h1>
-<p><strong>Any forecasts presented are intended purely for illustrative or entertainment purposes and should not be construed as financial advice.</strong></p>
-<p>This model forecasts portfolio returns using a block bootstrap approach applied to 
-    historical return data published by NYU Stern. Rather than randomly sampling individual 
-    years—which can break the sequence of returns and distort variability—the 
-    constructs sequential blocks to preserve historical patterns.</p>
-<p>
-<strong>Specifically:</strong>
-</p>
-<ul>
-    <li>The model begins in 1970 and identifies rolling 10-year blocks of annual returns.</li>
-    <li>Each block advances the start year by one.</li>
-    <ul>
-        <li>Block 1 spans 1970–1979</li>
-        <li>Block 2 spans 1971–1980</li>
+<div class="methodology-container">
+  <h1>Methodology Summary: Block Bootstrap Portfolio Return Forecasting</h1>
+
+  <div class="alert-warning">
+    <span class="icon">⚠️</span> This forecast is for illustration and education only. It is not financial advice.
+  </div>
+
+  <section class="info-block">
+    <p>
+      This model uses a <em>block bootstrap</em> method to forecast portfolio returns. 
+      In simple terms, we take actual historical returns, cut them into 10-year blocks, and 
+      shuffle those blocks to create thousands of possible future return paths.
+    </p>
+    <p>
+      For example, one block might be 1983–1992; another might be 1975–1984. 
+      This approach is like shuffling a deck of cards — but each “card” is a decade of market history.
+    </p>
+    <p>
+      The benefit is that it keeps real-world patterns intact, such as bull markets, bear markets, 
+      and periods of high inflation or high interest rates. It’s often more realistic than simply 
+      mixing individual years, which can miss the natural “ups and downs” investors experience.
+    </p>
+  </section>
+
+  <section class="info-block">
+    <h2>How It Differs From Monte Carlo Simulations</h2>
+    <p>
+      Monte Carlo simulations build thousands of potential futures by assuming a 
+      mathematical pattern (e.g., “stocks grow 6% per year with X% volatility”) 
+      and rolling the dice many times. This lets us test scenarios that have never happened in history, 
+      but it depends on how accurate our assumptions are.
+    </p>
+    <p>
+      Block bootstrap, by contrast, stays grounded in actual historical data. 
+      It captures the sequencing of returns — prolonged growth, deep drawdowns, 
+      and shifts between asset classes — as they really happened.
+    </p>
+  </section>
+
+  <section class="info-block">
+    <h2>Data Sets</h2>
+    <ul class="styled-list">
+      <li>S&P 500 (with dividends) – NYSE Stern School, 1970–present</li>
+      <li>US Small Cap (bottom decile) – NYSE Stern School, 1970–present</li>
+      <li>3-Month Treasury Bill – NYSE Stern School, 1970–present</li>
+      <li>10-Year Treasury Bond – NYSE Stern School & Federal Reserve, 1970–present</li>
+      <li>Baa Corporate Bonds – NYSE Stern School & Federal Reserve, 1970–present</li>
+      <li>Real Estate – NYSE Stern School, 1970–present</li>
+      <li>Gold – NYSE Stern School, 1970–present</li>
+      <li>Inflation (CPI) – NYSE Stern School, 1970–present</li>
+      <li>International Stocks (ex-US) – MSCI, 1970–present</li>
+      <li>Emerging Markets – MSCI, 1988–present</li>
+      <li>NASDAQ 100 – NASDAQ, 1986–present</li>
+      <li>Bitcoin – various sources, 2010–present</li>
     </ul>
-    <li>…and so on, progressing year by year.</li>
-</ul>
-<p>
-The advantage of this method is that it 
-retains the authentic sequencing of returns, capturing periods of sustained growth, prolonged drawdowns, and volatility clustering. In contrast to simulations that shuffle or randomly resample years—often underestimating both downside and upside risk—this approach more accurately reflects the path-dependent nature of real-world market returns.
-</p>
-<p>
-This process continues through 50 overlapping 10-year periods, 
-ending with the block that begins in 2019 and runs through 2028 
-(or the last available data year). For future years—2025, 2026, 2027, 
-and 2028—returns are not available and are assumed to have no year-over-year change.
-</p>
-<p>
-Gold is commonly included in portfolio modeling. The return data begins in 1970, 
-when the United States exited the gold standard and currencies became free-floating, 
-establishing a modern market-driven price for gold.
-</p>
-<p>
-The methodology used to forecast Bitcoin prices should not be relied upon for investment decisions. 
-Bitcoin is an exceptionally volatile asset with dramatic price swings and a relatively short history of market data compared to traditional asset classes. This limited historical record makes any attempt to model or predict future prices highly speculative. 
-</p>
+  </section>
+
+  <section class="info-block">
+    <h2>Assumptions and Limitations</h2>
+    <p>
+      When including Emerging Markets and NASDAQ 100 we cut out the earlier block with no data. This reduces the number of blocks, while keeping the historical data. 
+    </p>
+    <p>
+      When certain data is missing (e.g., Bitcoin before 2010), 
+      the return is treated as flat — similar to holding cash. 
+      This means earlier periods show no impact from these assets until they existed historically.
+    </p>
+    <p>
+      Taxes are simplified estimates using current tax rates and schedules; 
+      historical tax changes are not modeled. Results will vary by individual situation.
+    </p>
+  </section>
+</div>

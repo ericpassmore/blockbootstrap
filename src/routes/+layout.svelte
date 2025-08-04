@@ -40,6 +40,7 @@
 	</a>
 	<a href="/tools">Tools</a>
 	<a href="/methodology">Methodology</a>
+  <a href="/privacy">Privacy</a>
 	<button class={isLoggedIn ? 'logout-button' : 'login-button'} id="login-button" onclick={handleLoginButtonClick}>
 		<span class="material-icons">person</span>
 		{isLoggedIn ? 'Logout' : 'Login'}

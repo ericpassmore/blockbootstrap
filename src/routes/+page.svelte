@@ -28,7 +28,9 @@
 	// A helper to format numbers as US dollars
 	const currencyFormatter = new Intl.NumberFormat('en-US', {
 		style: 'currency',
-		currency: 'USD'
+		currency: 'USD',
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0
 	});
 
 	// helper to align colors from css
@@ -179,17 +181,19 @@
 	<!-- Results Section: This will only render when the form action returns data -->
 	{#if form?.success}
 		<div class="results-container">
-			<h2>Forecast Results</h2>
+			<h3>Your Results</h3>
+			<p>Here’s a summary of your allocation and projections based on the inputs above:</p>
 			<div class="summary">
 				<p><strong>Starting Amount:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-				<p><strong>75% Chance Amount:</strong> {currencyFormatter.format(form.q1)}</p>
-				<p><strong>Middle Amount:</strong> {currencyFormatter.format(form.median)}</p>
-				<p><strong>25% Chance Amount:</strong> {currencyFormatter.format(form.q3)}</p>
+				<p><strong>Projected Estimate:</strong> {currencyFormatter.format(form.median)}</p>
+				<p><strong>Conservative Estimate:</strong> {currencyFormatter.format(form.q1)}</p>
+				<p><strong>Top Estimate:</strong> {currencyFormatter.format(form.q3)}</p>
 				<p>
 					<strong>Simple Avg CAGR:</strong>
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
 				</p>
 			</div>
+			<p class="disclaimer">Projected is Median. Conservative is 1st Quartile. Top is 3rd Quartile</p>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
 				<div id="customLegend">
