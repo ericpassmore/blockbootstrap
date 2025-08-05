@@ -51,7 +51,7 @@ export const actions: Actions = {
 		}
 
 		// Instantiate the service to perform all calculations and data transformations.
-		const forecastService = new ForecastService(startingAmount, allocations);
+		const forecastService = await ForecastService.create(startingAmount, allocations);
 
 		return {
 			success: true,

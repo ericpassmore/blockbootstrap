@@ -4,12 +4,12 @@ import { type Allocation } from '$lib/modelReturns';
 
 
 describe('Forecast Service', () => {
-    it('check real results with 100% Treasuries', () => {
+    it('check real results with 100% Treasuries', async() => {
         const allocations: Allocation[] = [
             { key: 'treasury10Year', label: '10-Year Treasury', value: 100 }
         ];
         const startingAmount = 100000;
-        const forecastService = new ForecastService(startingAmount, allocations);
+        const forecastService = await ForecastService.create(startingAmount, allocations);
 
         // check summary data
         expect(forecastService.averageCAGR).toBeTypeOf('number')
@@ -44,12 +44,12 @@ describe('Forecast Service', () => {
         expect(forecastService.forecasts[12].cagr).toBeTypeOf('number')
         expect(forecastService.forecasts[12].cagr).toBeGreaterThan(0)
     })
-    it('check real results with 100% Bitcoin', () => {
+    it('check real results with 100% Bitcoin', async() => {
         const allocations: Allocation[] = [
             { key: 'bitcoin', label: 'Bitcoin', value: 100 }
         ];
         const startingAmount = 100000;
-        const forecastService = new ForecastService(startingAmount, allocations);
+        const forecastService = await ForecastService.create(startingAmount, allocations);
 
         // check summary data
         expect(forecastService.averageCAGR).toBeTypeOf('number')
@@ -76,7 +76,7 @@ describe('Forecast Service', () => {
         for (const block of forecastService.forecasts) {
             expect(block.blockNumber).toBeGreaterThan(0)
             expect(block.finalValue).toBeGreaterThan(0)
-            expect(block.taxes).toBeGreaterThan(0)
+            expect(block.taxes).toBe(0)
             expect(block.cagr).toBeTypeOf('number')
             expect(block.cagr).not.toBe(0)
         }

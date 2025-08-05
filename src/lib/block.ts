@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFile } from 'fs/promises';
 
 /**
  * Defines the structure for a single data point of market information for a year.
@@ -32,13 +31,13 @@ export class MarketDataService {
 
   /**
    * Initializes the service and loads data from the provided CSV file path.
-   * The data file is expected to be at './data/Fifty10YearBlocksFrom1970.csv' relative to this file.
+   * The data file is expected to be at '/data/Fifty10YearBlocksFrom1970.csv' relative to this file.
    */
   constructor() {
-    // Construct the path to the CSV file, assuming it's in a 'data' subdirectory
-    // relative to the location of this script.
-    const csvFilePath = path.join('src/lib', 'data', 'Fifty10YearBlocksFrom1970.csv');
-    this.loadDataFromCsv(csvFilePath);
+    this.init()
+  }
+  private async init() {
+    await this.loadDataFromCsv('/data/Fifty10YearBlocksFrom1970.csv');
   }
 
   /**
@@ -100,9 +99,22 @@ export class MarketDataService {
    * This method is called automatically by the constructor.
    * @param csvFilePath The absolute path to the CSV file.
    */
-  private loadDataFromCsv(csvFilePath: string): void {
+  private async loadDataFromCsv(csvPath:string): Promise<void> {
+
+
     try {
-      const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
+      let fileContent: string;
+
+      if (typeof window === 'undefined') {
+        // Node/Vitest environment
+        const filePath = new URL(`../../static${csvPath}`, import.meta.url);
+        fileContent = await readFile(filePath, 'utf-8');
+      } else {
+        // Browser/SvelteKit environment
+        const response = await fetch(csvPath);
+        fileContent = await response.text();
+      }
+
       const lines = fileContent.split('\n').slice(1); // Split by line and skip header
 
       for (const line of lines) {
@@ -113,11 +125,11 @@ export class MarketDataService {
 
         // Replace any '#N/A' value with '1' before splitting into columns
         const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
-        const seriesKey = this.safeParseInt(values[0], 10);
+        const seriesKey = this.safeParseInt(values[0]);
 
         // could not find historical dividend yield for small cap so made a constant 
         const marketData: MarketData = {
-          year: this.safeParseInt(values[1], 10),
+          year: this.safeParseInt(values[1]),
           sp500: this.safeParsePercentage(values[2]),
           usSmallCap: this.safeParsePercentage(values[3]),
           TBill: this.safeParsePercentage(values[4]),
@@ -139,7 +151,7 @@ export class MarketDataService {
         this.marketDataMap.set(seriesKey, seriesData);
       }
     } catch (error) {
-      console.error(`Error reading or parsing CSV file at ${csvFilePath}:`, error);
+      console.error(`Error reading or parsing CSV file at ${csvPath}:`, error);
     }
   }
 }

@@ -14,6 +14,12 @@ interface Forecast {
 	cagr: number;
 }
 
+interface StatisticsResult {
+	medianResult: PercentileResult;
+	q1Result: PercentileResult;
+	q3Result: PercentileResult;
+}
+
 /**
  * A service class to run a full portfolio forecast across all historical blocks,
  * calculate summary statistics, and prepare the results for display.
@@ -27,13 +33,13 @@ export class ForecastService {
 	public q1Series: number;
 	public q3: number;
 	public q3Series: number;
-    public averageCAGR: number;
+	public averageCAGR: number;
 
-	constructor(startingAmount: number, allocations: Allocation[]) {
+	constructor(
+		startingAmount: number,
+		forecasts: Forecast[],
+		statistics: StatisticsResult) {
 		this.startingAmount = startingAmount;
-
-		const allForecasts = this.buildAllForecasts(allocations);
-		const statistics = this.calculateStatistics(allForecasts);
 
 		this.median = statistics.medianResult.value;
 		this.medianSeries = statistics.medianResult.seriesNumber;
@@ -42,17 +48,31 @@ export class ForecastService {
 		this.q3 = statistics.q3Result.value;
 		this.q3Series = statistics.q3Result.seriesNumber;
 
-        this.averageCAGR = this.simpleArithmaticMean(allForecasts.map(f => f.cagr));
+		this.averageCAGR = this.simpleArithmaticMean(forecasts.map(f => f.cagr));
 
-		this.forecasts = this.reorderForecasts(allForecasts, statistics);
+		this.forecasts = this.reorderForecasts(forecasts, statistics);
 	}
 
-	private buildAllForecasts(allocations: Allocation[]): Forecast[] {
+	// NEW factory method to get around async issues
+	public static async create(startingAmount: number, allocations: Allocation[]): Promise<ForecastService> {
+		const instance = new ForecastService(startingAmount, [], {
+			medianResult: { value: 0, seriesNumber: 0 },
+			q1Result: { value: 0, seriesNumber: 0 },
+			q3Result: { value: 0, seriesNumber: 0 },
+		});
+
+		const allForecasts = await instance.buildAllForecasts(allocations);
+		const statistics = instance.calculateStatistics(allForecasts);
+
+		return new ForecastService(startingAmount, allForecasts, statistics);
+	}
+
+	private async buildAllForecasts(allocations: Allocation[]): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		const numberOfBlocks = blockData.getAllData().size;
 
 		for (let i = 1; i <= numberOfBlocks; i++) {
-			const model = new ModelReturns(this.startingAmount, allocations, i);
+			const model = await ModelReturns.create(this.startingAmount, allocations, i);
 			const currentYear = new Date().getFullYear();
 			let taxes = 0;
 			for (const result of model.results) {
@@ -70,7 +90,7 @@ export class ForecastService {
 		return allForecasts;
 	}
 
-	private calculateStatistics(allForecasts: Forecast[]) {
+	private calculateStatistics(allForecasts: Forecast[]): StatisticsResult {
 		const sortedForecasts = [...allForecasts].sort((a, b) => a.finalValue - b.finalValue);
 		const medianResult = this.getPercentileWithSeries(sortedForecasts, 0.5);
 		const q1Result = this.getPercentileWithSeries(sortedForecasts, 0.25);
@@ -85,10 +105,10 @@ export class ForecastService {
 		return { value: result.finalValue, seriesNumber: result.blockNumber };
 	}
 
-    private simpleArithmaticMean(values: number[]): number {
+	private simpleArithmaticMean(values: number[]): number {
 		const sum = values.reduce((acc, val) => acc + val, 0);
 		return sum / values.length
-    }
+	}
 
 	private reorderForecasts(allForecasts: Forecast[], statistics: ReturnType<typeof this.calculateStatistics>): Forecast[] {
 		const specialSeriesNumbers = new Set([statistics.q1Result.seriesNumber, statistics.medianResult.seriesNumber, statistics.q3Result.seriesNumber]);
@@ -97,7 +117,7 @@ export class ForecastService {
 		const medianForecast = allForecasts.find((f) => f.blockNumber === statistics.medianResult.seriesNumber);
 		const q3Forecast = allForecasts.find((f) => f.blockNumber === statistics.q3Result.seriesNumber);
 		const appendedSeries = new Set();
-        const firstForecasts: Forecast[] = [];
+		const firstForecasts: Forecast[] = [];
 
 		if (q1Forecast) { firstForecasts.push(q1Forecast); appendedSeries.add(q1Forecast.blockNumber); }
 		if (medianForecast && !appendedSeries.has(medianForecast.blockNumber)) { firstForecasts.push(medianForecast); appendedSeries.add(medianForecast.blockNumber); }

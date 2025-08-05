@@ -1,5 +1,5 @@
 import type { MarketData } from '$lib/block';
-import { blockData, MarketDataService } from '$lib/block';
+import { blockData } from '$lib/block';
 import { Taxes } from '$lib/taxes';
 import { AssetReturns } from '$lib/assetReturns';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
@@ -36,7 +36,6 @@ export class ModelReturns {
     private taxModel: Taxes;
     private treasuryPurchases: AssetReturns = new AssetReturns('treasury10Year', '10 Year Treasury');
     private baaCorpPurchases: AssetReturns = new AssetReturns('baaCorp', 'BAA Corporate Bonds');
-    // Using static methods from ConstantRateReturns directly
     // Note: baaCorpPurchases added to track purchases and reinvest income similarly to treasury10Year
 
 
@@ -52,10 +51,10 @@ export class ModelReturns {
         this.taxModel = new Taxes();
         this.finalValue = 0;
         const block = blockData.getSeries(blockNumber);
-		if (!block || block.length === 0) {
-			console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
+        if (!block || block.length === 0) {
+            console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
             return;
-		}
+        }
 
         // Calculate the initial dollar value for each asset based on the starting amount and allocation percentages.
         const assetValues = this._initializeAssetValues(allocations);
@@ -96,7 +95,7 @@ export class ModelReturns {
                         }
                         ordinaryIncome += this.baaCorpPurchases.totalIncome();
                         break;
-                        // Note: Updated baaCorp to track historical purchases and reinvest income like treasury10Year
+                    // Note: Updated baaCorp to track historical purchases and reinvest income like treasury10Year
                     case 'treasury10Year':
                         let thisYearTreasuryIncome = 0;
                         // to initialize if there are no records
@@ -151,6 +150,16 @@ export class ModelReturns {
         }
         // Set the final value after the loop has completed.
         this.finalValue = currentPortfolioValue;
+    }
+
+    // New static factory method
+    public static async create(
+        startingAmount: number,
+        allocations: Allocation[],
+        blockNumber: number
+    ): Promise<ModelReturns> {
+        await ConstantRateReturns.init(); // Ensure CSV is loaded
+        return new ModelReturns(startingAmount, allocations, blockNumber);
     }
 
     private _initializeAssetValues(allocations: Allocation[]): { [key: string]: number } {
