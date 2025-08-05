@@ -1,4 +1,5 @@
-import { readFile } from 'fs/promises';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class ConstantRateReturns {
     private static treasuryYield: Map<number, number> = new Map();
@@ -10,21 +11,21 @@ export class ConstantRateReturns {
      * Initializes the class by fetching and parsing the CSV data.
      * This must be called once before using getYield().
      */
-    public static async init(): Promise<void> {
+    public static async init(envTarget: string = 'PROD'): Promise<void> {
         if (this.initialized) return;
 
         try {
 
             let fileContent: string;
-            
-            if (typeof window === 'undefined') {
-                // Node/Vitest environment
-                const filePath = new URL('../../static/data/MarketYields.csv', import.meta.url);
-                fileContent = await readFile(filePath, 'utf-8');
-            } else {
+
+            if (envTarget === 'PROD') {
                 // Browser/SvelteKit environment
-                const response = await fetch('/data/MarketYields.csv');
+                const response = await fetch('https://blockbootstrap.com/data/MarketYields.csv');
                 fileContent = await response.text();
+            } else {
+                // Node/Vitest environment
+                const filePath = path.join('static/data', 'MarketYields.csv');
+                fileContent = fs.readFileSync(filePath, 'utf-8');
             }
 
             const lines = fileContent.split('\n');

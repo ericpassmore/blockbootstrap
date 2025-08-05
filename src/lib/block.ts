@@ -1,4 +1,5 @@
-import { readFile } from 'fs/promises';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Defines the structure for a single data point of market information for a year.
@@ -34,20 +35,20 @@ export class BlockData {
    * Initializes the service and loads data from the provided CSV file path.
    * The data file is expected to be at '/data/Fifty10YearBlocksFrom1970.csv' relative to this file.
    */
-  public static async init(): Promise<void> {
+  public static async init(envTarget: string = 'PROD'): Promise<void> {
     if (this.initialized) return;
 
     try {
       let fileContent: string;
 
-      if (typeof window === 'undefined') {
-        // Node/Vitest environment
-        const filePath = new URL('../../static/data/Fifty10YearBlocksFrom1970.csv', import.meta.url);
-        fileContent = await readFile(filePath, 'utf-8');
-      } else {
+      if (envTarget === 'PROD') {
         // Browser/SvelteKit environment
-        const response = await fetch('/data/Fifty10YearBlocksFrom1970.csv');
+        const response = await fetch('https://blockbootstrap.com/data/Fifty10YearBlocksFrom1970.csv');
         fileContent = await response.text();
+      } else {
+        // Node/Vitest environment
+        const filePath = path.join('static/data', 'Fifty10YearBlocksFrom1970.csv');
+        fileContent = fs.readFileSync(filePath, 'utf-8');
       }
 
       const lines = fileContent.split('\n').slice(1); // Split by line and skip header
@@ -85,7 +86,7 @@ export class BlockData {
         seriesData.push(marketData);
         this.marketDataMap.set(seriesKey, seriesData);
       }
-      
+
       this.initialized = true;
     } catch (error) {
       console.error(`Error reading or parsing CSV file at /data/Fifty10YearBlocksFrom1970.csv:`, error);

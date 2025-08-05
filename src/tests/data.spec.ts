@@ -4,8 +4,8 @@ import { BlockData } from '$lib/block';
 import { AssetReturns } from '$lib/assetReturns';
 
 beforeAll(async () => {
-    await ConstantRateReturns.init();
-    await BlockData.init()
+    await ConstantRateReturns.init('TEST');
+    await BlockData.init('TEST')
 });
 
 
