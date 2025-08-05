@@ -1,5 +1,5 @@
 import type { MarketData } from '$lib/block';
-import { blockData } from '$lib/block';
+import { BlockData } from '$lib/block';
 import { Taxes } from '$lib/taxes';
 import { AssetReturns } from '$lib/assetReturns';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
@@ -50,7 +50,7 @@ export class ModelReturns {
         this.startingAmount = startingAmount;
         this.taxModel = new Taxes();
         this.finalValue = 0;
-        const block = blockData.getSeries(blockNumber);
+        const block = BlockData.getSeries(blockNumber);
         if (!block || block.length === 0) {
             console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
             return;
@@ -65,7 +65,7 @@ export class ModelReturns {
         for (const yearData of block) {
             const startOfYearValue = currentPortfolioValue;
             // series starts at one not zero so adjust down by 1
-            const historicalReferenceYear = blockData.getHistoricalYear(blockNumber, yearData.year)
+            const historicalReferenceYear = BlockData.getHistoricalYear(blockNumber, yearData.year)
             const lastYear = historicalReferenceYear - 1;
             let ordinaryIncome = 0;
             let dividendIncome = 0;
@@ -159,6 +159,7 @@ export class ModelReturns {
         blockNumber: number
     ): Promise<ModelReturns> {
         await ConstantRateReturns.init(); // Ensure CSV is loaded
+        await BlockData.init();
         return new ModelReturns(startingAmount, allocations, blockNumber);
     }
 

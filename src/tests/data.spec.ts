@@ -1,10 +1,11 @@
 import { beforeAll, describe, it, expect } from 'vitest';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
-import { blockData } from '$lib/block';
+import { BlockData } from '$lib/block';
 import { AssetReturns } from '$lib/assetReturns';
 
 beforeAll(async () => {
     await ConstantRateReturns.init();
+    await BlockData.init()
 });
 
 
@@ -24,7 +25,7 @@ describe('Value Treasury Rates', () => {
 describe('Value Market Data', () => {
     it('all greater then zero', () => {
         for (let id = 1; id <= 46; id++) {
-            const block = blockData.getSeries(id)
+            const block = BlockData.getSeries(id)
             expect(block).toBeDefined()
             if (!block) return;
             for (const year of block) {
@@ -71,7 +72,7 @@ describe('Value Market Data', () => {
     });
     it('first and last values ok', () => {
         // first year 
-        const firstYear = blockData.getSeries(1)?.[0]
+        const firstYear = BlockData.getSeries(1)?.[0]
         expect(firstYear).toBeDefined()
         if (!firstYear) return;
         expect(firstYear.treasury10Year).toBeCloseTo(16.75, 2)
@@ -85,8 +86,8 @@ describe('Value Market Data', () => {
         expect(firstYear.realEstate).toBeCloseTo(8.22)
         expect(firstYear.bitcoin).toBe(1)
         // last entry N/A == 0
-        const lastBlockId = blockData.getAllData().size;
-        const lastYear = blockData.getSeries(lastBlockId)?.[9];
+        const lastBlockId = BlockData.getAllData().size;
+        const lastYear = BlockData.getSeries(lastBlockId)?.[9];
         expect(lastYear).toBeDefined()
         if (!lastYear) return;
         expect(lastYear.treasury10Year).toBe(0)

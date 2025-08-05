@@ -1,4 +1,4 @@
-import { blockData } from '$lib/block';
+import { BlockData } from '$lib/block';
 import { ModelReturns, type Allocation } from '$lib/modelReturns';
 
 interface PercentileResult {
@@ -69,7 +69,8 @@ export class ForecastService {
 
 	private async buildAllForecasts(allocations: Allocation[]): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
-		const numberOfBlocks = blockData.getAllData().size;
+		await BlockData.init()
+		const numberOfBlocks = BlockData.getAllData().size;
 
 		for (let i = 1; i <= numberOfBlocks; i++) {
 			const model = await ModelReturns.create(this.startingAmount, allocations, i);

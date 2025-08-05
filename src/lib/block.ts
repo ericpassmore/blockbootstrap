@@ -26,92 +26,27 @@ export interface MarketData {
  * A service class to load, parse, and provide access to market data from a CSV file.
  * This encapsulates the data loading logic and provides a clean API for accessing the data.
  */
-export class MarketDataService {
-  private marketDataMap: Map<number, MarketData[]> = new Map();
+export class BlockData {
+  private static marketDataMap: Map<number, MarketData[]> = new Map();
+  private static initialized = false;
 
   /**
    * Initializes the service and loads data from the provided CSV file path.
    * The data file is expected to be at '/data/Fifty10YearBlocksFrom1970.csv' relative to this file.
    */
-  constructor() {
-    this.init()
-  }
-  private async init() {
-    await this.loadDataFromCsv('/data/Fifty10YearBlocksFrom1970.csv');
-  }
-
-  /**
-   * Retrieves the entire map of market data.
-   * @returns A Map where the key is the series number and the value is an array of MarketData.
-   */
-  public getAllData(): Map<number, MarketData[]> {
-    return this.marketDataMap;
-  }
-
-  /**
-   * Retrieves a specific series of market data by its key.
-   * @param key The numeric key for the series.
-   * @returns An array of MarketData for the series, or undefined if not found.
-   */
-  public getSeries(key: number): MarketData[] | undefined {
-    return this.marketDataMap.get(key);
-  }
-
-  /**
-   * calculated a historical year based on block number and block index
-   * @param blockNumber The 1-based block number (e.g., 1-50).
-   * @param yearIndex The 1-based index within the block (e.g., 1-10).
-   * @returns historical 4 digit year
-   * @throws {Error} if blockNumber or yearIndex are less than 1.
-   */
-  public getHistoricalYear(blockNumber: number, yearIndex: number): number {
-    if (blockNumber < 1 || yearIndex < 1) {
-      throw new Error('blockNumber and yearIndex must be 1-based and cannot be less than 1.');
-    }
-    return 1970 + (blockNumber - 1) + (yearIndex - 1);
-  }
-
-  /**
-   * Parses a string that should contain a number.
-   * @param value The string value to parse
-   * @returns The parsed floating-point number. Defaults to 1 when parsing error
-   */
-  private safeParseInt = (val: string) => {
-    const parsed = parseInt(val, 10);
-    return isNaN(parsed) ? 1 : parsed;
-  };
-
-  /**
-   * Parses a string that may contain a percentage sign and returns it as a float.
-   * @param value The string value to parse (e.g., "15.55%" or "-5.2%").
-   * @returns The parsed floating-point number.
-   */
-  private safeParsePercentage = (value: string) => {
-    if (typeof value !== 'string') {
-      return 1;
-    }
-    const parsed = parseFloat(value.replace('%', ''));
-    return isNaN(parsed) ? 1 : parsed;
-  };
-
-  /**
-   * Reads the specified CSV file, parses its content, and populates the marketDataMap.
-   * This method is called automatically by the constructor.
-   * @param csvFilePath The absolute path to the CSV file.
-   */
-  private async loadDataFromCsv(csvPath:string): Promise<void> {
-
+  public static async init(): Promise<void> {
+    if (this.initialized) return;
 
     try {
       let fileContent: string;
 
       if (typeof window === 'undefined') {
         // Node/Vitest environment
-        const filePath = new URL(`../../static${csvPath}`, import.meta.url);
+        const filePath = new URL('../../static/data/Fifty10YearBlocksFrom1970.csv', import.meta.url);
         fileContent = await readFile(filePath, 'utf-8');
       } else {
         // Browser/SvelteKit environment
-        const response = await fetch(csvPath);
+        const response = await fetch('/data/Fifty10YearBlocksFrom1970.csv');
         fileContent = await response.text();
       }
 
@@ -150,10 +85,64 @@ export class MarketDataService {
         seriesData.push(marketData);
         this.marketDataMap.set(seriesKey, seriesData);
       }
+      
+      this.initialized = true;
     } catch (error) {
-      console.error(`Error reading or parsing CSV file at ${csvPath}:`, error);
+      console.error(`Error reading or parsing CSV file at /data/Fifty10YearBlocksFrom1970.csv:`, error);
     }
   }
-}
 
-export const blockData = new MarketDataService();
+  /**
+   * Retrieves the entire map of market data.
+   * @returns A Map where the key is the series number and the value is an array of MarketData.
+   */
+  public static getAllData(): Map<number, MarketData[]> {
+    return this.marketDataMap;
+  }
+
+  /**
+   * Retrieves a specific series of market data by its key.
+   * @param key The numeric key for the series.
+   * @returns An array of MarketData for the series, or undefined if not found.
+   */
+  public static getSeries(key: number): MarketData[] | undefined {
+    return this.marketDataMap.get(key);
+  }
+
+  /**
+   * calculated a historical year based on block number and block index
+   * @param blockNumber The 1-based block number (e.g., 1-50).
+   * @param yearIndex The 1-based index within the block (e.g., 1-10).
+   * @returns historical 4 digit year
+   * @throws {Error} if blockNumber or yearIndex are less than 1.
+   */
+  public static getHistoricalYear(blockNumber: number, yearIndex: number): number {
+    if (blockNumber < 1 || yearIndex < 1) {
+      throw new Error('blockNumber and yearIndex must be 1-based and cannot be less than 1.');
+    }
+    return 1970 + (blockNumber - 1) + (yearIndex - 1);
+  }
+
+  /**
+   * Parses a string that should contain a number.
+   * @param value The string value to parse
+   * @returns The parsed floating-point number. Defaults to 1 when parsing error
+   */
+  private static safeParseInt = (val: string) => {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? 1 : parsed;
+  };
+
+  /**
+   * Parses a string that may contain a percentage sign and returns it as a float.
+   * @param value The string value to parse (e.g., "15.55%" or "-5.2%").
+   * @returns The parsed floating-point number.
+   */
+  private static safeParsePercentage = (value: string) => {
+    if (typeof value !== 'string') {
+      return 1;
+    }
+    const parsed = parseFloat(value.replace('%', ''));
+    return isNaN(parsed) ? 1 : parsed;
+  };
+}
