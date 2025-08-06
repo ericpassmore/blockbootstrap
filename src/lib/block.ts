@@ -59,7 +59,7 @@ export class BlockData {
           continue; // Skip empty lines
         }
 
-        // Replace any '#N/A' value with '1' before splitting into columns
+        // Replace any '#N/A' value with '0' before splitting into columns
         const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
         const seriesKey = this.safeParseInt(values[0]);
 
@@ -127,11 +127,11 @@ export class BlockData {
   /**
    * Parses a string that should contain a number.
    * @param value The string value to parse
-   * @returns The parsed floating-point number. Defaults to 1 when parsing error
+   * @returns The parsed floating-point number. Defaults to 0 when parsing error
    */
   private static safeParseInt = (val: string) => {
     const parsed = parseInt(val, 10);
-    return isNaN(parsed) ? 1 : parsed;
+    return isNaN(parsed) ? 0 : parsed;
   };
 
   /**

@@ -35,7 +35,7 @@
 
 <nav>
 	<a href="/" class="nav-home-link">
-		<span class="material-icons" aria-hidden="true">home</span>
+		<img src=logo_b_halo.svg alt="BlockBootstrap Logo" />
 		Home
 	</a>
 	<a href="/tools">Tools</a>
