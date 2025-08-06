@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { CodeGenerator } from '$lib/codeGenerator';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: PageServerLoad = async ({ params }) => {
 	if (!params.code) return { codeOk: false, status: 400, error: 'No verification code provided' };
 
 	const codeParam = params.code;

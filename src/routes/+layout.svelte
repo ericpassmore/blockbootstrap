@@ -35,7 +35,7 @@
 
 <nav>
 	<a href="/" class="nav-home-link">
-		<img src=logo_b_halo.svg alt="BlockBootstrap Logo" />
+		<img src=/logo_b_halo.svg alt="BlockBootstrap Logo" />
 		Home
 	</a>
 	<a href="/tools">Tools</a>
@@ -57,7 +57,7 @@
 			<h2>Login</h2>
 			<form
 				method="POST"
-				action="?/login"
+				action="/?/login"
 				use:enhance={() => {
 					return async ({ update, result }) => {
 						await update({ reset: false });
