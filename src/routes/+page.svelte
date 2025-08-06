@@ -1,14 +1,30 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import Chart from 'chart.js/auto'; // Simplified import for vanilla Chart.js
-
 	import type { PageData } from './$types';
-
+	import { type Allocation } from '$lib/modelReturns';
+	import { type Forecast } from '$lib/forecastService';
+	
 	// This prop will receive the data returned from our server-side form action
-	export let form: PageData;
+	// entend to include client side
+		interface FormData extends PageData {
+			success: boolean;
+			forecasts: Forecast[];
+			startingAmount: number,
+			allocations: Allocation[];
+			median: number;
+			medianSeries: number;
+			q1: number;
+			q1Series: number;
+			q3: number;
+			q3Series: number;
+			averageCAGR: number;
+			error: string;
+	}
 
+	import { onDestroy } from 'svelte';
+	import { type ChartOptions, Chart} from 'chart.js/auto'; // Simplified import for vanilla Chart.js
+
+	export let form: FormData;
 	let startingAmount: number = form?.startingAmount || 10000;
-
 	// Define the asset classes for allocation
 	let allocations = form?.allocations || [
 		{ key: 'sp500', label: 'S&P 500', value: 45 },
@@ -25,6 +41,21 @@
 	$: totalAllocation = allocations.reduce((sum, asset) => sum + asset.value, 0);
 	$: isInvalid = totalAllocation !== 100;
 
+	// Scroll down automatically 
+	function scrollPastForm() {
+		const formEl = document.getElementById('main-form');
+		if (!formEl) return;
+
+		// Measure offset from top to bottom of the form 
+		const offset = formEl.offsetTop + formEl.offsetHeight;
+
+		// Scroll by that amount smoothly
+		window.scrollBy({
+			top: offset,
+			behavior: 'smooth'
+		});
+	}
+
 	// A helper to format numbers as US dollars
 	const currencyFormatter = new Intl.NumberFormat('en-US', {
 		style: 'currency',
@@ -34,7 +65,7 @@
 	});
 
 	// helper to align colors from css
-	function getCSSVar(name) {
+	function getCSSVar(name: string) {
 		// Read value of a CSS variable (e.g., '--legend-incomplete-color')
 		return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 	}
@@ -89,7 +120,7 @@
 			}))
 		};
 
-		const chartOptions = {
+		const chartOptions: ChartOptions<'line'> = {
 			responsive: true,
 			maintainAspectRatio: true,
 			aspectRatio: 1.5,
@@ -121,6 +152,7 @@
 				options: chartOptions
 			});
 		}
+		scrollPastForm();
 	}
 
 	// Ensure the chart instance is destroyed when the component is unmounted to prevent memory leaks
@@ -143,7 +175,7 @@
 	</div>
 
 	<!-- This form now submits data to the 'runForecast' action on the server -->
-	<form method="POST" action="?/runForecast">
+	<form method="POST" id="main-form" action="?/runForecast">
 		<div class="form-group starting-amount-group">
 			<label for="startingAmount">Starting Investment ($)</label>
 			<input
@@ -193,7 +225,9 @@
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
 				</p>
 			</div>
-			<p class="disclaimer">Projected is Median. Conservative is 1st Quartile. Top is 3rd Quartile</p>
+			<p class="disclaimer">
+				Projected is Median. Conservative is 1st Quartile. Top is 3rd Quartile
+			</p>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
 				<div id="customLegend">

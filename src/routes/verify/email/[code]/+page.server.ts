@@ -1,7 +1,7 @@
 import { users } from '$lib/../db/schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import { db } from '$lib/db';
+import { db } from '$lib/server/db';
 import { CodeGenerator } from '$lib/codeGenerator';
 
 export const load: PageServerLoad = async ({ params, locals }) => {

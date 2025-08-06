@@ -4,7 +4,7 @@
 
 	let isLoginPopoverOpen = $state(false);
 	let emailSubmissionSuccessfull = $state(false);
-	let message = $state('');
+	let message: string = $state('');
 
 	// Track login state
 	let isLoggedIn = $state(false);
@@ -67,7 +67,7 @@
 							emailSubmissionSuccessfull = true;
 							message = 'Check your email for the verification code.';
 						} else if (result.type === 'failure') {
-							message = result.data.error;
+							message = (result.data?.error as string) || 'Unknown error.';;
 						}
 						if (message) {
 							setTimeout(closePopup, 2500);

@@ -3,7 +3,7 @@ import { fail } from '@sveltejs/kit';
 import { ForecastService } from '$lib/forecastService';
 import type { Actions } from './$types';
 import { BREVO_API_KEY } from '$env/static/private';
-import { db } from '$lib/db';      // your Drizzle DB instance
+import { db } from '$lib/server/db';      // your Drizzle DB instance
 import { User } from '$lib/user';  // adjust path as needed
 
 export const actions: Actions = {

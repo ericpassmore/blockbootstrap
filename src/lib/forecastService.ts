@@ -6,7 +6,7 @@ interface PercentileResult {
 	seriesNumber: number;
 }
 
-interface Forecast {
+export interface Forecast {
 	blockNumber: number;
 	results: any[]; // YearlyReturn[]
 	taxes: number;
@@ -14,7 +14,7 @@ interface Forecast {
 	cagr: number;
 }
 
-interface StatisticsResult {
+export interface StatisticsResult {
 	medianResult: PercentileResult;
 	q1Result: PercentileResult;
 	q3Result: PercentileResult;
