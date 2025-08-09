@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { User } from '../lib/user';
+import { User } from '$lib/user';
 
 describe('User Management (DI)', () => {
 	let mockDb: any;
