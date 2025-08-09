@@ -17,6 +17,7 @@
 		q3: number;
 		q3Series: number;
 		averageCAGR: number;
+		finalValueStdDev: number;
 		error: string;
 		options: [boolean, boolean];
 	}
@@ -258,6 +259,10 @@
 				<p>
 					<strong>Simple Avg CAGR:</strong>
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
+				</p>
+				<p>
+					<strong>Std Dev:</strong>
+					{currencyFormatter.format(form.finalValueStdDev)} <em>across all final values</em>
 				</p>
 			</div>
 			<p class="disclaimer">

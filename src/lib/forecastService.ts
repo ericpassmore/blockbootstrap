@@ -34,6 +34,7 @@ export class ForecastService {
 	public q3: number;
 	public q3Series: number;
 	public averageCAGR: number;
+	public finalValueStdDev: number;
 
 	constructor(startingAmount: number, forecasts: Forecast[], statistics: StatisticsResult) {
 		this.startingAmount = startingAmount;
@@ -46,6 +47,7 @@ export class ForecastService {
 		this.q3Series = statistics.q3Result.seriesNumber;
 
 		this.averageCAGR = this.simpleArithmaticMean(forecasts.map((f) => f.cagr));
+		this.finalValueStdDev = this.standardDeviation(forecasts.map((f) => f.finalValue));
 
 		this.forecasts = this.reorderForecasts(forecasts, statistics);
 	}
@@ -128,6 +130,14 @@ export class ForecastService {
 	private simpleArithmaticMean(values: number[]): number {
 		const sum = values.reduce((acc, val) => acc + val, 0);
 		return sum / values.length;
+	}
+
+	private standardDeviation(values: number[]): number {
+		const n = values.length;
+		if (n === 0) return 0;
+		const mean = this.simpleArithmaticMean(values);
+		const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+		return Math.sqrt(variance);
 	}
 
 	private reorderForecasts(

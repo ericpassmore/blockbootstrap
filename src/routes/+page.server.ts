@@ -71,6 +71,7 @@ export const actions: Actions = {
 			q3: forecastService.q3,
 			q3Series: forecastService.q3Series,
 			averageCAGR: forecastService.averageCAGR,
+			finalValueStdDev: forecastService.finalValueStdDev,
 			options: [rebalance, inflationAdjusted]
 		};
 	}
