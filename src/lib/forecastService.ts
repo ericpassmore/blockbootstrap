@@ -54,26 +54,26 @@ export class ForecastService {
 	}
 
 	// NEW factory method to get around async issues
-	public static async create(startingAmount: number, allocations: Allocation[]): Promise<ForecastService> {
+	public static async create(startingAmount: number, allocations: Allocation[], rebalance: boolean, inflationAdjusted: boolean): Promise<ForecastService> {
 		const instance = new ForecastService(startingAmount, [], {
 			medianResult: { value: 0, seriesNumber: 0 },
 			q1Result: { value: 0, seriesNumber: 0 },
 			q3Result: { value: 0, seriesNumber: 0 },
 		});
 
-		const allForecasts = await instance.buildAllForecasts(allocations);
+		const allForecasts = await instance.buildAllForecasts(allocations, rebalance, inflationAdjusted);
 		const statistics = instance.calculateStatistics(allForecasts);
 
 		return new ForecastService(startingAmount, allForecasts, statistics);
 	}
 
-	private async buildAllForecasts(allocations: Allocation[]): Promise<Forecast[]> {
+	private async buildAllForecasts(allocations: Allocation[], rebalance: boolean, inflationAdjusted: boolean): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init()
 		const numberOfBlocks = BlockData.getAllData().size;
 
 		for (let i = 1; i <= numberOfBlocks; i++) {
-			const model = await ModelReturns.create(this.startingAmount, allocations, i);
+			const model = await ModelReturns.create(this.startingAmount, allocations, i, rebalance, inflationAdjusted);
 			const currentYear = new Date().getFullYear();
 			let taxes = 0;
 			for (const result of model.results) {

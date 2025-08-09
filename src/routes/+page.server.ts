@@ -36,6 +36,8 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const startingAmount = Number(formData.get('startingAmount'));
 		const allocationsJSON = formData.get('allocations');
+		const rebalance = formData.get('rebalance') === 'on';
+		const inflationAdjusted = formData.get('inflationAdjusted') === 'on';
 
 		// Basic validation for form data
 		if (!startingAmount || !allocationsJSON) {
@@ -51,7 +53,12 @@ export const actions: Actions = {
 		}
 
 		// Instantiate the service to perform all calculations and data transformations.
-		const forecastService = await ForecastService.create(startingAmount, allocations);
+		const forecastService = await ForecastService.create(
+			startingAmount,
+			allocations,
+			rebalance,
+			inflationAdjusted
+		);
 
 		return {
 			success: true,

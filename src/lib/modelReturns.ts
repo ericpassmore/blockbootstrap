@@ -26,6 +26,8 @@ export interface AnnualReturn {
     percentageAllocations: Allocation[];
 }
 
+export type AssetValues = { [key: string]: number };
+
 /**
  * A class to model portfolio returns over a historical block of data.
  */
@@ -34,9 +36,7 @@ export class ModelReturns {
     public finalValue: number;
     public startingAmount: number;
     private taxModel: Taxes;
-    private treasuryPurchases: AssetReturns = new AssetReturns('treasury10Year', '10 Year Treasury');
-    private baaCorpPurchases: AssetReturns = new AssetReturns('baaCorp', 'BAA Corporate Bonds');
-    // Note: baaCorpPurchases added to track purchases and reinvest income similarly to treasury10Year
+    private incomeAssetTrackers: Map<string, AssetReturns> = new Map();
 
 
     /**
@@ -46,10 +46,13 @@ export class ModelReturns {
      * @param allocations An array defining the portfolio allocation percentages.
      * @param blockNumber The block number associated with the data
      */
-    constructor(startingAmount: number, allocations: Allocation[], blockNumber: number) {
+    constructor(startingAmount: number, allocations: Allocation[], blockNumber: number, rebalance: boolean, inflationAdjusted: boolean) {
         this.startingAmount = startingAmount;
         this.taxModel = new Taxes();
         this.finalValue = 0;
+		this.incomeAssetTrackers.set('treasury10Year', new AssetReturns('treasury10Year', '10 Year Treasury'));
+		this.incomeAssetTrackers.set('baaCorp', new AssetReturns('baaCorp', 'BAA Corporate Bonds'));
+
         const block = BlockData.getSeries(blockNumber);
         if (!block || block.length === 0) {
             console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
@@ -57,7 +60,7 @@ export class ModelReturns {
         }
 
         // Calculate the initial dollar value for each asset based on the starting amount and allocation percentages.
-        const assetValues = this._initializeAssetValues(allocations);
+        let assetValues: AssetValues = this._initializeAssetValues(allocations);
 
         // This variable tracks the total portfolio value, updated annually through the simulation.
         let currentPortfolioValue = startingAmount;
@@ -70,12 +73,17 @@ export class ModelReturns {
             let ordinaryIncome = 0;
             let dividendIncome = 0;
             let endOfYearValue = 0;
+			let capitalGains = 0;
 
             // Calculate end-of-year value for each asset based on its return
             for (const assetKey in assetValues) {
                 const key = assetKey as keyof typeof assetValues;
                 const assetStartValue = assetValues[key];
-                const assetReturnPercentage = key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
+                let assetReturnPercentage = key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
+
+				if (inflationAdjusted) {
+					assetReturnPercentage -= yearData.inflation || 0;
+				}
 
                 // Identify and sum up different types of income for tax purposes
                 switch (key) {
@@ -83,31 +91,8 @@ export class ModelReturns {
                         ordinaryIncome += assetStartValue * (assetReturnPercentage / 100);
                         break;
                     case 'baaCorp':
-                        let thisYearBaaCorpIncome = 0;
-                        // to initialize if there are no records
-                        // no records, either first time or previous years have negative returns
-                        if (!this.baaCorpPurchases.hasRecords()) {
-                            this._addBaaCorpPurchase(historicalReferenceYear, assetStartValue);
-                        } else {
-                            // income from the previous year used to purchase this year's items
-                            thisYearBaaCorpIncome = this.baaCorpPurchases.getChangeInValue(lastYear);
-                            this._addBaaCorpPurchase(historicalReferenceYear, thisYearBaaCorpIncome);
-                        }
-                        ordinaryIncome += this.baaCorpPurchases.totalIncome();
-                        break;
-                    // Note: Updated baaCorp to track historical purchases and reinvest income like treasury10Year
                     case 'treasury10Year':
-                        let thisYearTreasuryIncome = 0;
-                        // to initialize if there are no records
-                        // no records, either first time or previous years have negative returns
-                        if (!this.treasuryPurchases.hasRecords()) {
-                            this._addTreasuryPurchase(historicalReferenceYear, assetStartValue);
-                        } else {
-                            // income from the previous year used to purchase this year's items
-                            thisYearTreasuryIncome = this.treasuryPurchases.getChangeInValue(lastYear);
-                            this._addTreasuryPurchase(historicalReferenceYear, thisYearTreasuryIncome);
-                        }
-                        ordinaryIncome += this.treasuryPurchases.totalIncome();
+						ordinaryIncome += this._processIncomeAsset(key, assetStartValue, historicalReferenceYear, lastYear);
                         break;
                     case 'sp500':
                         const dividendYield = yearData.sp500DividendYield || 0;
@@ -124,8 +109,16 @@ export class ModelReturns {
                 endOfYearValue += valueAfterReturn;
             }
 
+            if (rebalance) {
+				const rebalanceResult = this._annualRebalance(assetValues, allocations);
+				assetValues = rebalanceResult.assetValues;
+				capitalGains = rebalanceResult.capitalGains;
+			} else {
+                capitalGains = 0;
+            }
+
             // Calculate taxes on the income generated during the year
-            const taxes = this.taxModel.calculateTaxes(ordinaryIncome, dividendIncome, 0);
+            const taxes = this.taxModel.calculateTaxes(ordinaryIncome, dividendIncome, capitalGains);
 
             // Subtract taxes from the portfolio value to get the true end-of-year value
             const growth = endOfYearValue - startOfYearValue;
@@ -146,7 +139,7 @@ export class ModelReturns {
             });
 
             // This is the fix: update the portfolio value for the next year's calculation.
-            currentPortfolioValue = endOfYearValue;
+            currentPortfolioValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
         }
         // Set the final value after the loop has completed.
         this.finalValue = currentPortfolioValue;
@@ -156,15 +149,17 @@ export class ModelReturns {
     public static async create(
         startingAmount: number,
         allocations: Allocation[],
-        blockNumber: number
+        blockNumber: number,
+		rebalance: boolean,
+		inflationAdjusted: boolean
     ): Promise<ModelReturns> {
         await ConstantRateReturns.init(); // Ensure CSV is loaded
         await BlockData.init();
-        return new ModelReturns(startingAmount, allocations, blockNumber);
+        return new ModelReturns(startingAmount, allocations, blockNumber, rebalance, inflationAdjusted);
     }
 
-    private _initializeAssetValues(allocations: Allocation[]): { [key: string]: number } {
-        const assetValues: { [key: string]: number } = {};
+    private _initializeAssetValues(allocations: Allocation[]): AssetValues {
+        const assetValues: AssetValues = {};
         // Calculate the initial dollar value for each allocated asset
         for (const asset of allocations) {
             const startValue = (this.startingAmount * asset.value) / 100;
@@ -173,25 +168,73 @@ export class ModelReturns {
         return assetValues;
     }
 
-    private _addTreasuryPurchase(historicalReferenceYear: number, purchaseAmount: number): void {
-        const treasuryYield = ConstantRateReturns.getYield(historicalReferenceYear, 'treasury10Year');
-        // income is used to purchase new 10yr Treasury
-        this.treasuryPurchases.addRecord(
-            historicalReferenceYear,
-            purchaseAmount,
-            treasuryYield
-        );
-    }
+	private _annualRebalance(yearEndValues: AssetValues, targetAllocations: Allocation[]): { capitalGains: number; assetValues: AssetValues } {
+		const totalPortfolioValue = Object.values(yearEndValues).reduce((sum, value) => sum + value, 0);
+		let capitalGains = 0;
+		let capitalPool = 0;
 
-    private _addBaaCorpPurchase(historicalReferenceYear: number, purchaseAmount: number): void {
-        const baaCorpYield = ConstantRateReturns.getYield(historicalReferenceYear, 'baaCorp');
-        // income is used to purchase new BAA Corporate Bonds
-        this.baaCorpPurchases.addRecord(
-            historicalReferenceYear,
-            purchaseAmount,
-            baaCorpYield
-        );
-    }
+		const targetAmounts: AssetValues = {};
+		for (const allocation of targetAllocations) {
+			targetAmounts[allocation.key] = totalPortfolioValue * (allocation.value / 100);
+		}
+
+		// First pass: sell oversized positions
+		for (const assetKey in yearEndValues) {
+			if (yearEndValues[assetKey] > targetAmounts[assetKey]) {
+				const difference = yearEndValues[assetKey] - targetAmounts[assetKey];
+				capitalPool += difference;
+				capitalGains += difference;
+				yearEndValues[assetKey] = targetAmounts[assetKey];
+			}
+		}
+
+		// Second pass: buy undersized positions
+		for (const assetKey in yearEndValues) {
+			if (yearEndValues[assetKey] < targetAmounts[assetKey]) {
+				const amountNeeded = targetAmounts[assetKey] - yearEndValues[assetKey];
+				if (capitalPool >= amountNeeded) {
+					yearEndValues[assetKey] += amountNeeded;
+					capitalPool -= amountNeeded;
+				} else {
+					yearEndValues[assetKey] += capitalPool;
+					capitalPool = 0;
+				}
+			}
+		}
+
+		// If there is any capital left over after rebalancing, it is allocated to T-Bills.
+		// This assumes that T-Bills are a safe, liquid asset to hold the remaining cash.
+		if (capitalPool > 0) {
+			if (!yearEndValues['TBill']) {
+				yearEndValues['TBill'] = 0;
+			}
+			yearEndValues['TBill'] += capitalPool;
+		}
+
+		return { capitalGains, assetValues: yearEndValues };
+	}
+
+	private _processIncomeAsset(assetKey: keyof MarketData, assetStartValue: number, historicalReferenceYear: number, lastYear: number): number {
+		const tracker = this.incomeAssetTrackers.get(assetKey);
+		if (!tracker) return 0;
+
+		if (!tracker.hasRecords()) {
+			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, assetStartValue);
+		} else {
+			const income = tracker.getChangeInValue(lastYear);
+			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, income);
+		}
+		return tracker.totalIncome();
+	}
+
+	private _addIncomeAssetPurchase(tracker: AssetReturns, historicalReferenceYear: number, purchaseAmount: number): void {
+		const assetYield = ConstantRateReturns.getYield(historicalReferenceYear, tracker.assetKey as keyof MarketData);
+		tracker.addRecord(
+			historicalReferenceYear,
+			purchaseAmount,
+			assetYield
+		);
+	}
 
     public calculateCAGR(): number {
         if (this.startingAmount <= 0 || this.results.length === 0) {

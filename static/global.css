@@ -329,6 +329,10 @@ td.negative {
   flex-wrap: wrap; /* allows stacking on small screens */
 }
 
+.advanced-options {
+	background-color: var(--primary-background-color);
+}
+
 /* Reset margins for all children */
 .info-block > * {
   margin: 0;
@@ -343,6 +347,17 @@ td.negative {
   border-bottom: 1px solid var(--secondary-highligh-color);
   padding-bottom: 0.5rem;
 }
+
+.info-block h3 {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--secondary-highligh-color);
+  padding-bottom: 0.5rem;
+}
+
 
 /* Image now sits in flex flow, no floats needed */
 .info-block img {
@@ -378,3 +393,36 @@ h1 {
     font-weight: bold;
 }
 
+/* Checkbox styling */
+.checkbox-container {
+	display: flex;
+	gap: 2rem;
+	align-items: center;
+}
+
+.checkbox-item {
+	display: flex;
+	flex-direction: column; /* stack items vertically */
+	align-items: flex-start; /* left-align everything */
+	gap: 0.25rem; /* smaller gap between elements */
+}
+
+.checkbox-item input[type="checkbox"] {
+	margin-bottom: 0.25rem;
+}
+
+.checkbox-item label {
+	font-weight: 500;
+}
+
+.checkbox-label-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.tooltip {
+	font-size: 0.8rem;
+	font-style: italic;
+	color: var(--action-cancel-color);
+}

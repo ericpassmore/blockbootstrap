@@ -2,28 +2,35 @@
 	import type { PageData } from './$types';
 	import { type Allocation } from '$lib/modelReturns';
 	import { type Forecast } from '$lib/forecastService';
-	
+
 	// This prop will receive the data returned from our server-side form action
 	// entend to include client side
-		interface FormData extends PageData {
-			success: boolean;
-			forecasts: Forecast[];
-			startingAmount: number,
-			allocations: Allocation[];
-			median: number;
-			medianSeries: number;
-			q1: number;
-			q1Series: number;
-			q3: number;
-			q3Series: number;
-			averageCAGR: number;
-			error: string;
+	interface FormData extends PageData {
+		success: boolean;
+		forecasts: Forecast[];
+		startingAmount: number;
+		allocations: Allocation[];
+		median: number;
+		medianSeries: number;
+		q1: number;
+		q1Series: number;
+		q3: number;
+		q3Series: number;
+		averageCAGR: number;
+		error: string;
 	}
 
-	import { onDestroy } from 'svelte';
-	import { type ChartOptions, Chart} from 'chart.js/auto'; // Simplified import for vanilla Chart.js
+	import { onDestroy, onMount } from 'svelte';
+	import { type ChartOptions, Chart } from 'chart.js/auto'; // Simplified import for vanilla Chart.js
 
 	export let form: FormData;
+	let isLoggedIn = false;
+	let rebalance = false;
+	let inflationAdjusted = false;
+
+	onMount(() => {
+		isLoggedIn = !!localStorage.getItem('token');
+	});
 	let startingAmount: number = form?.startingAmount || 10000;
 	// Define the asset classes for allocation
 	let allocations = form?.allocations || [
@@ -41,12 +48,12 @@
 	$: totalAllocation = allocations.reduce((sum, asset) => sum + asset.value, 0);
 	$: isInvalid = totalAllocation !== 100;
 
-	// Scroll down automatically 
+	// Scroll down automatically
 	function scrollPastForm() {
 		const formEl = document.getElementById('main-form');
 		if (!formEl) return;
 
-		// Measure offset from top to bottom of the form 
+		// Measure offset from top to bottom of the form
 		const offset = formEl.offsetTop + formEl.offsetHeight;
 
 		// Scroll by that amount smoothly
@@ -206,6 +213,33 @@
 				<span class="error-message"> (Must be 100%)</span>
 			{/if}
 		</div>
+
+		{#if isLoggedIn}
+			<div class="info-block advanced-options">
+				<h3>Advanced Options</h3>
+				<div class="checkbox-container">
+					<div class="checkbox-item">
+						<div class="checkbox-label-row">
+							<input type="checkbox" id="rebalance" name="rebalance" bind:checked={rebalance} />
+							<label for="rebalance">Rebalance</label>
+						</div>
+						<small class="tooltip">annual reallocation</small>
+					</div>
+					<div class="checkbox-item">
+						<div class="checkbox-label-row">
+							<input
+								type="checkbox"
+								id="inflationAdjusted"
+								name="inflationAdjusted"
+								bind:checked={inflationAdjusted}
+							/>
+							<label for="inflationAdjusted">Inflation Adjusted</label>
+						</div>
+						<small class="tooltip">adjust returns by inflation</small>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<button type="submit" disabled={isInvalid}>Run Forecast</button>
 	</form>
