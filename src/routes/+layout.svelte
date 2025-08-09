@@ -35,13 +35,17 @@
 
 <nav>
 	<a href="/" class="nav-home-link">
-		<img src=/logo_b_halo.svg alt="BlockBootstrap Logo" />
+		<img src="/logo_b_halo.svg" alt="BlockBootstrap Logo" />
 		Home
 	</a>
 	<a href="/tools">Tools</a>
 	<a href="/methodology">Methodology</a>
-  <a href="/privacy">Privacy</a>
-	<button class={isLoggedIn ? 'logout-button' : 'login-button'} id="login-button" onclick={handleLoginButtonClick}>
+	<a href="/privacy">Privacy</a>
+	<button
+		class={isLoggedIn ? 'logout-button' : 'login-button'}
+		id="login-button"
+		onclick={handleLoginButtonClick}
+	>
 		<span class="material-icons">person</span>
 		{isLoggedIn ? 'Logout' : 'Login'}
 	</button>
@@ -67,7 +71,7 @@
 							emailSubmissionSuccessfull = true;
 							message = 'Check your email for the verification code.';
 						} else if (result.type === 'failure') {
-							message = (result.data?.error as string) || 'Unknown error.';;
+							message = (result.data?.error as string) || 'Unknown error.';
 						}
 						if (message) {
 							setTimeout(closePopup, 2500);

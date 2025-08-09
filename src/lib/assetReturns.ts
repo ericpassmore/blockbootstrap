@@ -15,20 +15,20 @@ export class AssetReturns {
 	public readonly assetLabel: string;
 	public annualPerformance: AnnualAssetPerformance[] = [];
 
-	constructor(assetKey: string, assetLabel:string) {
+	constructor(assetKey: string, assetLabel: string) {
 		this.assetKey = assetKey;
 		this.assetLabel = assetLabel;
 	}
 
 	/**
 	 * Adds a record of the asset's performance for a specific year.
-	 * If negative return purchase is zero amount 
+	 * If negative return purchase is zero amount
 	 * @param year The year of the performance data.
 	 * @param value The value of the asset for the upcoming year.
 	 * @param returnPercentage The percentage return of the asset for that year.
 	 */
 	public addRecord(year: number, assetPurchase: number, returnPercentage: number): void {
-		const value = assetPurchase>0 ? assetPurchase : 0
+		const value = assetPurchase > 0 ? assetPurchase : 0;
 		this.annualPerformance.push({ year, value, returnPercentage });
 	}
 
@@ -38,12 +38,12 @@ export class AssetReturns {
 	 * @returns The amount invested in a specific year.
 	 *          if no records returns zero
 	 */
-	public getAssetValue (year: number): number {
+	public getAssetValue(year: number): number {
 		const performance = this.annualPerformance.find((perf) => perf.year === year);
 		if (performance) {
-			return performance.value
+			return performance.value;
 		}
-		return 0
+		return 0;
 	}
 
 	/**
@@ -52,12 +52,12 @@ export class AssetReturns {
 	 * @returns The change in value of the asset for the specified year.
 	 *          if no records returns zero
 	 */
-	public getChangeInValue (year: number): number {
+	public getChangeInValue(year: number): number {
 		const performance = this.annualPerformance.find((perf) => perf.year === year);
 		if (performance) {
-			return performance.value * performance.returnPercentage/100
+			return (performance.value * performance.returnPercentage) / 100;
 		}
-		return 0
+		return 0;
 	}
 
 	/**
@@ -65,16 +65,15 @@ export class AssetReturns {
 	 * @returns true of there are records otherwise false
 	 */
 	public hasRecords(): boolean {
-		return this.annualPerformance.length > 0
+		return this.annualPerformance.length > 0;
 	}
 
-    /** 
-     * sum up the product of the values to return the total interest income 
-    */
-    public totalIncome(): number {
-        return this.annualPerformance.reduce((sum, perf) => {
-            return sum + perf.value * perf.returnPercentage/100 }, 0
-        )
-    }
-
+	/**
+	 * sum up the product of the values to return the total interest income
+	 */
+	public totalIncome(): number {
+		return this.annualPerformance.reduce((sum, perf) => {
+			return sum + (perf.value * perf.returnPercentage) / 100;
+		}, 0);
+	}
 }

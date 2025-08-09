@@ -18,6 +18,7 @@
 		q3Series: number;
 		averageCAGR: number;
 		error: string;
+		options: [boolean, boolean];
 	}
 
 	import { onDestroy, onMount } from 'svelte';
@@ -25,8 +26,8 @@
 
 	export let form: FormData;
 	let isLoggedIn = false;
-	let rebalance = false;
-	let inflationAdjusted = false;
+	let rebalance = form?.options?.[0] || false;
+	let inflationAdjusted = form?.options?.[1] || false;
 
 	onMount(() => {
 		isLoggedIn = !!localStorage.getItem('token');
@@ -110,7 +111,7 @@
 		const chartData = {
 			// Use labels from the first forecast, assuming they are all the same length
 			labels: ['Start', ...form.forecasts[0].results.map((r) => r.year)],
-			datasets: form.forecasts.map((forecast, index) => ({
+			datasets: form.forecasts.map((forecast) => ({
 				label: `Block ${forecast.blockNumber}`,
 				data: [form.startingAmount, ...forecast.results.map((r) => r.endValue)],
 				// series 46 and greater have partial data
@@ -294,7 +295,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each form.forecasts as blockResult}
+					{#each form.forecasts as blockResult (blockResult.blockNumber)}
 						<tr>
 							<td>{blockResult.blockNumber}</td>
 							<td>{currencyFormatter.format(blockResult.finalValue)}</td>

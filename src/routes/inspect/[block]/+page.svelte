@@ -9,7 +9,7 @@
 {#if data.block?.length > 0}
 	{#each data.block as item}
 		<div class="data-block">
-			<h2>Year: {item.year + data.blockNumber + 1969 -1}</h2>
+			<h2>Year: {item.year + data.blockNumber + 1969 - 1}</h2>
 			<ul>
 				<li><strong>S&P 500:</strong> {item.sp500}%</li>
 				<li><strong>US Small Cap:</strong> {item.usSmallCap}%</li>

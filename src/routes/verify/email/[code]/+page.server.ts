@@ -10,15 +10,18 @@ export const load: PageServerLoad = async ({ params }) => {
 	const codeParam = params.code;
 	const code = parseInt(codeParam, 10);
 	const userResult = await db.select().from(users).where(eq(users.code, code)).limit(1);
-	if (userResult.length === 0) return { codeOk: false, status: 400, error: 'Your code was not found. Please try again.'};
+	if (userResult.length === 0)
+		return { codeOk: false, status: 400, error: 'Your code was not found. Please try again.' };
 
 	const user = userResult[0];
 	const now = new Date();
-	const updates: { lastLoginDate: Date, firstLoginDate?: Date } = { lastLoginDate: now };
+	const updates: { lastLoginDate: Date; firstLoginDate?: Date } = { lastLoginDate: now };
 
-	if (!user.firstLoginDate) { updates.firstLoginDate = now; }
+	if (!user.firstLoginDate) {
+		updates.firstLoginDate = now;
+	}
 
 	await db.update(users).set(updates).where(eq(users.id, user.id));
 
-	return { codeOk: true, status: 200, token: CodeGenerator.getToken(), error: null }
+	return { codeOk: true, status: 200, token: CodeGenerator.getToken(), error: null };
 };

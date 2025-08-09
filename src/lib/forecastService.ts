@@ -35,10 +35,7 @@ export class ForecastService {
 	public q3Series: number;
 	public averageCAGR: number;
 
-	constructor(
-		startingAmount: number,
-		forecasts: Forecast[],
-		statistics: StatisticsResult) {
+	constructor(startingAmount: number, forecasts: Forecast[], statistics: StatisticsResult) {
 		this.startingAmount = startingAmount;
 
 		this.median = statistics.medianResult.value;
@@ -48,32 +45,51 @@ export class ForecastService {
 		this.q3 = statistics.q3Result.value;
 		this.q3Series = statistics.q3Result.seriesNumber;
 
-		this.averageCAGR = this.simpleArithmaticMean(forecasts.map(f => f.cagr));
+		this.averageCAGR = this.simpleArithmaticMean(forecasts.map((f) => f.cagr));
 
 		this.forecasts = this.reorderForecasts(forecasts, statistics);
 	}
 
 	// NEW factory method to get around async issues
-	public static async create(startingAmount: number, allocations: Allocation[], rebalance: boolean, inflationAdjusted: boolean): Promise<ForecastService> {
+	public static async create(
+		startingAmount: number,
+		allocations: Allocation[],
+		rebalance: boolean,
+		inflationAdjusted: boolean
+	): Promise<ForecastService> {
 		const instance = new ForecastService(startingAmount, [], {
 			medianResult: { value: 0, seriesNumber: 0 },
 			q1Result: { value: 0, seriesNumber: 0 },
-			q3Result: { value: 0, seriesNumber: 0 },
+			q3Result: { value: 0, seriesNumber: 0 }
 		});
 
-		const allForecasts = await instance.buildAllForecasts(allocations, rebalance, inflationAdjusted);
+		const allForecasts = await instance.buildAllForecasts(
+			allocations,
+			rebalance,
+			inflationAdjusted
+		);
 		const statistics = instance.calculateStatistics(allForecasts);
 
 		return new ForecastService(startingAmount, allForecasts, statistics);
 	}
 
-	private async buildAllForecasts(allocations: Allocation[], rebalance: boolean, inflationAdjusted: boolean): Promise<Forecast[]> {
+	private async buildAllForecasts(
+		allocations: Allocation[],
+		rebalance: boolean,
+		inflationAdjusted: boolean
+	): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
-		await BlockData.init()
+		await BlockData.init();
 		const numberOfBlocks = BlockData.getAllData().size;
 
 		for (let i = 1; i <= numberOfBlocks; i++) {
-			const model = await ModelReturns.create(this.startingAmount, allocations, i, rebalance, inflationAdjusted);
+			const model = await ModelReturns.create(
+				this.startingAmount,
+				allocations,
+				i,
+				rebalance,
+				inflationAdjusted
+			);
 			const currentYear = new Date().getFullYear();
 			let taxes = 0;
 			for (const result of model.results) {
@@ -99,7 +115,10 @@ export class ForecastService {
 		return { medianResult, q1Result, q3Result };
 	}
 
-	private getPercentileWithSeries(sortedForecasts: Forecast[], percentile: number): PercentileResult {
+	private getPercentileWithSeries(
+		sortedForecasts: Forecast[],
+		percentile: number
+	): PercentileResult {
 		const pos = (sortedForecasts.length - 1) * percentile;
 		const index = Math.round(pos);
 		const result = sortedForecasts[index];
@@ -108,21 +127,38 @@ export class ForecastService {
 
 	private simpleArithmaticMean(values: number[]): number {
 		const sum = values.reduce((acc, val) => acc + val, 0);
-		return sum / values.length
+		return sum / values.length;
 	}
 
-	private reorderForecasts(allForecasts: Forecast[], statistics: ReturnType<typeof this.calculateStatistics>): Forecast[] {
-		const specialSeriesNumbers = new Set([statistics.q1Result.seriesNumber, statistics.medianResult.seriesNumber, statistics.q3Result.seriesNumber]);
+	private reorderForecasts(
+		allForecasts: Forecast[],
+		statistics: ReturnType<typeof this.calculateStatistics>
+	): Forecast[] {
+		const specialSeriesNumbers = new Set([
+			statistics.q1Result.seriesNumber,
+			statistics.medianResult.seriesNumber,
+			statistics.q3Result.seriesNumber
+		]);
 		const regularForecasts = allForecasts.filter((f) => !specialSeriesNumbers.has(f.blockNumber));
 		const q1Forecast = allForecasts.find((f) => f.blockNumber === statistics.q1Result.seriesNumber);
-		const medianForecast = allForecasts.find((f) => f.blockNumber === statistics.medianResult.seriesNumber);
+		const medianForecast = allForecasts.find(
+			(f) => f.blockNumber === statistics.medianResult.seriesNumber
+		);
 		const q3Forecast = allForecasts.find((f) => f.blockNumber === statistics.q3Result.seriesNumber);
 		const appendedSeries = new Set();
 		const firstForecasts: Forecast[] = [];
 
-		if (q1Forecast) { firstForecasts.push(q1Forecast); appendedSeries.add(q1Forecast.blockNumber); }
-		if (medianForecast && !appendedSeries.has(medianForecast.blockNumber)) { firstForecasts.push(medianForecast); appendedSeries.add(medianForecast.blockNumber); }
-		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumber)) { firstForecasts.push(q3Forecast); }
+		if (q1Forecast) {
+			firstForecasts.push(q1Forecast);
+			appendedSeries.add(q1Forecast.blockNumber);
+		}
+		if (medianForecast && !appendedSeries.has(medianForecast.blockNumber)) {
+			firstForecasts.push(medianForecast);
+			appendedSeries.add(medianForecast.blockNumber);
+		}
+		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumber)) {
+			firstForecasts.push(q3Forecast);
+		}
 		return [...firstForecasts, ...regularForecasts];
 	}
 }

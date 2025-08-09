@@ -11,10 +11,7 @@ export class Taxes {
 	public NIITRate: number = 3.8;
 	public incomeTaxBrackets: TaxBracket[];
 
-	constructor(
-		thresholdAGI_NIIT: number = 600000,
-		longTermCapitalGainsTaxRate: number = 20
-	) {
+	constructor(thresholdAGI_NIIT: number = 600000, longTermCapitalGainsTaxRate: number = 20) {
 		this.thresholdAGI_NIIT = thresholdAGI_NIIT;
 		this.longTermCapitalGainsTaxRate = longTermCapitalGainsTaxRate;
 		// 2025 Federal Income Tax Bracket Projections
@@ -47,11 +44,7 @@ export class Taxes {
 		return tax;
 	}
 
-	private addNIIT(
-		ordinaryIncome: number,
-		capitalGains: number,
-		goldGains: number
-	): boolean {
+	private addNIIT(ordinaryIncome: number, capitalGains: number, goldGains: number): boolean {
 		return ordinaryIncome + capitalGains + goldGains > this.thresholdAGI_NIIT;
 	}
 }
