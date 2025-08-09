@@ -253,20 +253,20 @@
 			<p>Here’s a summary of your allocation and projections based on the inputs above:</p>
 			<div class="summary">
 				<p><strong>Starting Amt:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-				<p><strong>Projected Est:</strong> {currencyFormatter.format(form.median)}</p>
+				<p><strong>Median Est:</strong> {currencyFormatter.format(form.median)}</p>
 				<p><strong>Conservative Est:</strong> {currencyFormatter.format(form.q1)}</p>
-				<p><strong>Top Est:</strong> {currencyFormatter.format(form.q3)}</p>
+				<p><strong>Optimistic Est:</strong> {currencyFormatter.format(form.q3)}</p>
 				<p>
-					<strong>Simple Avg CAGR:</strong>
+					<strong>Average Annual Growth Rate:</strong>
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
 				</p>
 				<p>
-					<strong>Std Dev:</strong>
-					{currencyFormatter.format(form.finalValueStdDev)} <em>across all final values</em>
+					<strong>Expected fluctuation in returns:</strong>
+					{currencyFormatter.format(form.finalValueStdDev)}
 				</p>
 			</div>
 			<p class="disclaimer">
-				Projected is Median. Conservative is 1st Quartile. Top is 3rd Quartile
+				Conservative is 1st Quartile. Optimistic is 3rd Quartile.
 			</p>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
