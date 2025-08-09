@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ModelReturns, type Allocation } from '$lib/modelReturns';
+import { ForecastOptions } from '$lib/forecastOptions';
 
 describe('Taxes/Appreciation', () => {
 	it('treasury taxes are always greater than zero for the first 40 blocks', async () => {
@@ -7,27 +8,29 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 100 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 
 		for (let blockNumber = 1; blockNumber <= 40; blockNumber++) {
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				false,
-				false
+				optionsWithoutRebalance
 			);
 
-            const modelWithRebalance = await ModelReturns.create(
+			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				true,
-				false
+				optionsWithRebalance
 			);
 
 			// We expect some ordinary income from treasuries each year, which should result in taxes.
 			const totalTaxesWithoutRebalance = modelWithoutRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-            const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
+			const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
 
 			expect(modelWithoutRebalance.results.length, `Block ${blockNumber} should have 10 years of results`).toBe(10);
 			expect(totalTaxesWithoutRebalance, `Total taxes for block ${blockNumber} should be > 0`).toBeGreaterThan(0);
@@ -35,40 +38,42 @@ describe('Taxes/Appreciation', () => {
 				modelWithoutRebalance.results[0].taxes,
 				`First year taxes for block ${blockNumber} should be > 0`
 			).toBeGreaterThan(0);
-            expect(totalTaxesWithRebalance,'Total taxes for ${blockNumber} should be > 0').toBeGreaterThan(0);
+			expect(totalTaxesWithRebalance, 'Total taxes for ${blockNumber} should be > 0').toBeGreaterThan(0);
 		}
 	});
-    it('taxes with rebalancing are always greater', async () => {
+	it('taxes with rebalancing are always greater', async () => {
 		const allocations: Allocation[] = [
-            { key: 'sp500', label: 'S&P 500 index', value: 60 },
+			{ key: 'sp500', label: 'S&P 500 index', value: 60 },
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 30 },
-            { key: 'bitcoin', label: 'Bitcoin', value: 10 }
+			{ key: 'bitcoin', label: 'Bitcoin', value: 10 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 
 		for (let blockNumber = 1; blockNumber <= 40; blockNumber++) {
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				false,
-				false
+				optionsWithoutRebalance
 			);
 
-            const modelWithRebalance = await ModelReturns.create(
+			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				true,
-				false
+				optionsWithRebalance
 			);
 
 			// We expect some ordinary income from treasuries each year, which should result in taxes.
 			const totalTaxesWithoutRebalance = modelWithoutRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-            const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-            expect(
-                totalTaxesWithRebalance,
-                'Total taxes with rebalancing for ${blockNumber} should be > total taxes without rebalancing').toBeGreaterThan(totalTaxesWithoutRebalance)
+			const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
+			expect(
+				totalTaxesWithRebalance,
+				'Total taxes with rebalancing for ${blockNumber} should be > total taxes without rebalancing').toBeGreaterThan(totalTaxesWithoutRebalance)
 		}
 	});
 	it('check taxes/appreciation for block 9 with 100% Treasuries', async () => {
@@ -76,7 +81,10 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 100 }
 		];
 		const startingAmount = 100000;
-		const model = await ModelReturns.create(startingAmount, allocations, 9, false, false);
+		// options 
+		const defaultOptions = new ForecastOptions();
+
+		const model = await ModelReturns.create(startingAmount, allocations, 9, defaultOptions);
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -95,7 +103,9 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'baaCorp', label: 'BAA Corporate Bonds', value: 100 }
 		];
 		const startingAmount = 100000;
-		const model = await ModelReturns.create(startingAmount, allocations, 9, false, false);
+		// options 
+		const defaultOptions = new ForecastOptions();
+		const model = await ModelReturns.create(startingAmount, allocations, 9, defaultOptions);
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -112,7 +122,9 @@ describe('Taxes/Appreciation', () => {
 	it('check taxes/appreciation block 4 with 100% sp500', async () => {
 		const allocations: Allocation[] = [{ key: 'sp500', label: 'S&P 500', value: 100 }];
 		const startingAmount = 100000;
-		const model = await ModelReturns.create(startingAmount, allocations, 4, false, false);
+		// options 
+		const defaultOptions = new ForecastOptions();
+		const model = await ModelReturns.create(startingAmount, allocations, 4, defaultOptions);
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -129,7 +141,9 @@ describe('Taxes/Appreciation', () => {
 	it('bitcoin allocation in Block 1 should be ok', async () => {
 		const allocations: Allocation[] = [{ key: 'bitcoin', label: 'Bitcoin', value: 100 }];
 		const startingAmount = 100000;
-		const model = await ModelReturns.create(startingAmount, allocations, 1, false, false);
+		// options 
+		const defaultOptions = new ForecastOptions();
+		const model = await ModelReturns.create(startingAmount, allocations, 1, defaultOptions);
 		expect(model.finalValue).toBeTypeOf('number');
 		expect(model.finalValue).not.toBeNaN();
 		expect(model.finalValue).toBeGreaterThan(5000);
@@ -140,6 +154,10 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 100 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		const blockNumbers = [9, 19, 29, 39, 49];
 
 		for (const blockNumber of blockNumbers) {
@@ -147,15 +165,13 @@ describe('Taxes/Appreciation', () => {
 				startingAmount,
 				allocations,
 				blockNumber,
-				true,
-				false
+				optionsWithRebalance
 			);
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				false,
-				false
+				optionsWithoutRebalance
 			);
 
 			expect(modelWithRebalance.finalValue).toBeCloseTo(modelWithoutRebalance.finalValue);
@@ -168,6 +184,10 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 40 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		const blockNumbers = [9];
 
 		for (const blockNumber of blockNumbers) {
@@ -175,28 +195,29 @@ describe('Taxes/Appreciation', () => {
 				startingAmount,
 				allocations,
 				blockNumber,
-				true,
-				false
+				optionsWithRebalance
 			);
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
 				blockNumber,
-				false,
-				false
+				optionsWithoutRebalance
 			);
 
 			const totalTaxesWithoutRebalance = modelWithoutRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-            const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
+			const totalTaxesWithRebalance = modelWithRebalance.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
 			expect(modelWithRebalance.finalValue).not.toBeCloseTo(modelWithoutRebalance.finalValue);
 			expect(modelWithRebalance.finalValue).toBeCloseTo(339291.18, 2);
-            expect(totalTaxesWithRebalance).toBeGreaterThan(totalTaxesWithoutRebalance);
+			expect(totalTaxesWithRebalance).toBeGreaterThan(totalTaxesWithoutRebalance);
 		}
 	});
 
 	it('expect smaller inflation adjusted sp500', async () => {
 		const allocations: Allocation[] = [{ key: 'sp500', label: 'S&P 500', value: 100 }];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithInflationAdj = new ForecastOptions();
+		optionsWithInflationAdj.adjustForInflationOn();
 		const blockNumber = 9;
 
 		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, false, false);
@@ -205,8 +226,7 @@ describe('Taxes/Appreciation', () => {
 			startingAmount,
 			allocations,
 			blockNumber,
-			false,
-			true
+			optionsWithInflationAdj
 		);
 
 		expect(model.finalValue).toBeCloseTo(407806.67, 2);
@@ -217,6 +237,9 @@ describe('Taxes/Appreciation', () => {
 	it('expect smaller inflation adjusted us small caps', async () => {
 		const allocations: Allocation[] = [{ key: 'usSmallCap', label: 'US Small Cap', value: 100 }];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithInflationAdj = new ForecastOptions();
+		optionsWithInflationAdj.adjustForInflationOn();
 		const blockNumber = 9;
 
 		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, false, false);
@@ -225,8 +248,7 @@ describe('Taxes/Appreciation', () => {
 			startingAmount,
 			allocations,
 			blockNumber,
-			false,
-			true
+			optionsWithInflationAdj
 		);
 
 		expect(model.finalValue).toBeCloseTo(406630.54, 2);
@@ -240,22 +262,24 @@ describe('Taxes/Appreciation', () => {
 			{ key: 'bitcoin', label: 'Bitcoin', value: 10 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		const blockNumber = 40; // A block with significant bitcoin volatility
 
 		const modelWithoutRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
 			blockNumber,
-			false,
-			false
+			optionsWithoutRebalance
 		);
 
 		const modelWithRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
 			blockNumber,
-			true,
-			false
+			optionsWithRebalance
 		);
 
 		const totalTaxesWithoutRebalance = modelWithoutRebalance.results.reduce(
@@ -282,20 +306,23 @@ describe('Tax Scenarios', () => {
 			{ key: 'gold', label: 'Gold', value: 50 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithoutRebalance = new ForecastOptions();
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		// Block 2 has gold with negative returns in the first year and SP500 with positive returns.
 		// This should force a rebalance where gold is sold.
 		const blockNumber = 2;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, true, false);
+		const modelWithRebalance = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
 		const modelNoRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
 			blockNumber,
-			false,
-			false
+			optionsWithoutRebalance
 		);
 
-		const totalTaxes = model.results.reduce((sum, r) => sum + r.taxes, 0);
+		const totalTaxes = modelWithRebalance.results.reduce((sum, r) => sum + r.taxes, 0);
 		const totalTaxesNoRebalance = modelNoRebalance.results.reduce((sum, r) => sum + r.taxes, 0);
 
 		// Rebalancing should trigger capital gains taxes, so taxes should be higher.
@@ -308,10 +335,13 @@ describe('Tax Scenarios', () => {
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 50 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		// Block 5 (1974-1983) has negative returns for SP500 in the first year.
 		const blockNumber = 5;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, true, false);
+		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
 		const firstYearTaxes = model.results[0].taxes;
 
 		// With SP500 having a loss, rebalancing will sell treasuries (assuming they gained value, which they did).
@@ -324,9 +354,12 @@ describe('Tax Scenarios', () => {
 	it('Test the NIIT (Net Investment Income Tax) Threshold', async () => {
 		const allocations: Allocation[] = [{ key: 'sp500', label: 'S&P 500', value: 100 }];
 		const startingAmount = 10_000_000;
+		// options 
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
 		const blockNumber = 9; // High-growth block
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, true, false);
+		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
 		const firstYearResult = model.results[0];
 
 		// In block 9, year 1 (1978), SP500 grew by 6.56%. With a $10M start, that's a $656,000 gain.
@@ -346,15 +379,18 @@ describe('Tax Scenarios', () => {
 			{ key: 'sp500', label: 'S&P 500', value: 60 }
 		];
 		const startingAmount = 100000;
+		// options 
+		const optionsWithRebalance = new ForecastOptions();
+		optionsWithRebalance.rebalanceOn();
+		const defaultOptions = new ForecastOptions();
 		const blockNumber = 9;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, true, false);
+		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
 		const modelNoRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
 			blockNumber,
-			false,
-			false
+			defaultOptions
 		);
 
 		const totalTaxes = model.results.reduce((sum, r) => sum + r.taxes, 0);

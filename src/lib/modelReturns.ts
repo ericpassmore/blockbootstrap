@@ -3,6 +3,7 @@ import { BlockData } from '$lib/block';
 import { Taxes } from '$lib/taxes';
 import { AssetReturns } from '$lib/assetReturns';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
+import { ForecastOptions } from '$lib/forecastOptions';
 
 /**
  * Defines the structure for a user's portfolio allocation.
@@ -50,8 +51,7 @@ export class ModelReturns {
 		startingAmount: number,
 		allocations: Allocation[],
 		blockNumber: number,
-		rebalance: boolean,
-		inflationAdjusted: boolean
+		options: ForecastOptions
 	) {
 		this.startingAmount = startingAmount;
 		this.taxModel = new Taxes();
@@ -92,7 +92,7 @@ export class ModelReturns {
 				let assetReturnPercentage =
 					key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
 
-				if (inflationAdjusted) {
+				if (options.inflationAdjusted) {
 					assetReturnPercentage -= yearData.inflation || 0;
 				}
 
@@ -125,7 +125,7 @@ export class ModelReturns {
 				endOfYearValue += valueAfterReturn;
 			}
 
-			if (rebalance) {
+			if (options.rebalance) {
 				const rebalanceResult = this._annualRebalance(assetValues, allocations);
 				assetValues = rebalanceResult.assetValues;
 				capitalGains = rebalanceResult.capitalGains;
@@ -172,12 +172,11 @@ export class ModelReturns {
 		startingAmount: number,
 		allocations: Allocation[],
 		blockNumber: number,
-		rebalance: boolean,
-		inflationAdjusted: boolean
+		options: ForecastOptions
 	): Promise<ModelReturns> {
 		await ConstantRateReturns.init(); // Ensure CSV is loaded
 		await BlockData.init();
-		return new ModelReturns(startingAmount, allocations, blockNumber, rebalance, inflationAdjusted);
+		return new ModelReturns(startingAmount, allocations, blockNumber, options);
 	}
 
 	private _initializeAssetValues(allocations: Allocation[]): AssetValues {

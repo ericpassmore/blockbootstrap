@@ -1,5 +1,6 @@
 import { BlockData } from '$lib/block';
 import { ModelReturns, type Allocation } from '$lib/modelReturns';
+import { ForecastOptions } from '$lib/forecastOptions';
 
 interface PercentileResult {
 	value: number;
@@ -56,8 +57,7 @@ export class ForecastService {
 	public static async create(
 		startingAmount: number,
 		allocations: Allocation[],
-		rebalance: boolean,
-		inflationAdjusted: boolean
+		options: ForecastOptions
 	): Promise<ForecastService> {
 		const instance = new ForecastService(startingAmount, [], {
 			medianResult: { value: 0, seriesNumber: 0 },
@@ -65,11 +65,7 @@ export class ForecastService {
 			q3Result: { value: 0, seriesNumber: 0 }
 		});
 
-		const allForecasts = await instance.buildAllForecasts(
-			allocations,
-			rebalance,
-			inflationAdjusted
-		);
+		const allForecasts = await instance.buildAllForecasts(allocations, options);
 		const statistics = instance.calculateStatistics(allForecasts);
 
 		return new ForecastService(startingAmount, allForecasts, statistics);
@@ -77,8 +73,7 @@ export class ForecastService {
 
 	private async buildAllForecasts(
 		allocations: Allocation[],
-		rebalance: boolean,
-		inflationAdjusted: boolean
+		options: ForecastOptions
 	): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
@@ -89,8 +84,7 @@ export class ForecastService {
 				this.startingAmount,
 				allocations,
 				i,
-				rebalance,
-				inflationAdjusted
+				options
 			);
 			const currentYear = new Date().getFullYear();
 			let taxes = 0;

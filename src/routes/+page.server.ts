@@ -1,6 +1,6 @@
 import { type Allocation } from '$lib/modelReturns';
 import { fail } from '@sveltejs/kit';
-import { ForecastService } from '$lib/forecastService';
+import { ForecastService, ForecastOptions } from '$lib/forecastService';
 import type { Actions } from './$types';
 import { BREVO_API_KEY } from '$env/static/private';
 import { db } from '$lib/server/db'; // your Drizzle DB instance
@@ -52,11 +52,11 @@ export const actions: Actions = {
 		}
 
 		// Instantiate the service to perform all calculations and data transformations.
+		const forecastOptions = new ForecastOptions(rebalance, inflationAdjusted);
 		const forecastService = await ForecastService.create(
 			startingAmount,
 			allocations,
-			rebalance,
-			inflationAdjusted
+			forecastOptions
 		);
 
 		return {
@@ -72,7 +72,7 @@ export const actions: Actions = {
 			q3Series: forecastService.q3Series,
 			averageCAGR: forecastService.averageCAGR,
 			finalValueStdDev: forecastService.finalValueStdDev,
-			options: [rebalance, inflationAdjusted]
+			options: forecastOptions
 		};
 	}
 };
