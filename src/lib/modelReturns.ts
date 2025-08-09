@@ -36,6 +36,7 @@ export class ModelReturns {
 	public finalValue: number;
 	public startingAmount: number;
 	private taxModel: Taxes;
+	private assetCostBasis: AssetValues = {};
 	private incomeAssetTrackers: Map<string, AssetReturns> = new Map();
 
 	/**
@@ -82,6 +83,7 @@ export class ModelReturns {
 			let dividendIncome = 0;
 			let endOfYearValue = 0;
 			let capitalGains = 0;
+			let goldCapitalGains = 0;
 
 			// Calculate end-of-year value for each asset based on its return
 			for (const assetKey in assetValues) {
@@ -127,12 +129,18 @@ export class ModelReturns {
 				const rebalanceResult = this._annualRebalance(assetValues, allocations);
 				assetValues = rebalanceResult.assetValues;
 				capitalGains = rebalanceResult.capitalGains;
+				goldCapitalGains = rebalanceResult.goldCapitalGains;
 			} else {
+                // not really needed makes me feel better
 				capitalGains = 0;
+                goldCapitalGains = 0;
 			}
 
 			// Calculate taxes on the income generated during the year
-			const taxes = this.taxModel.calculateTaxes(ordinaryIncome, dividendIncome, capitalGains);
+			const taxes = this.taxModel.calculateTaxes(
+                ordinaryIncome, 
+                dividendIncome+capitalGains, 
+                goldCapitalGains);
 
 			// Subtract taxes from the portfolio value to get the true end-of-year value
 			const growth = endOfYearValue - startOfYearValue;
@@ -178,6 +186,7 @@ export class ModelReturns {
 		for (const asset of allocations) {
 			const startValue = (this.startingAmount * asset.value) / 100;
 			assetValues[asset.key] = startValue;
+			this.assetCostBasis[asset.key] = startValue;
 		}
 		return assetValues;
 	}
@@ -185,9 +194,10 @@ export class ModelReturns {
 	private _annualRebalance(
 		yearEndValues: AssetValues,
 		targetAllocations: Allocation[]
-	): { capitalGains: number; assetValues: AssetValues } {
+	): { capitalGains: number; goldCapitalGains: number; assetValues: AssetValues } {
 		const totalPortfolioValue = Object.values(yearEndValues).reduce((sum, value) => sum + value, 0);
 		let capitalGains = 0;
+		let goldCapitalGains = 0;
 		let capitalPool = 0;
 
 		const targetAmounts: AssetValues = {};
@@ -195,13 +205,23 @@ export class ModelReturns {
 			targetAmounts[allocation.key] = totalPortfolioValue * (allocation.value / 100);
 		}
 
-		// First pass: sell oversized positions
+		// First pass: sell oversized positions and calculate capital gains
 		for (const assetKey in yearEndValues) {
 			if (yearEndValues[assetKey] > targetAmounts[assetKey]) {
-				const difference = yearEndValues[assetKey] - targetAmounts[assetKey];
-				capitalPool += difference;
-				capitalGains += difference;
-				yearEndValues[assetKey] = targetAmounts[assetKey];
+				const amountToSell = yearEndValues[assetKey] - targetAmounts[assetKey];
+				const originalCostBasis = this.assetCostBasis[assetKey];
+				const proportionalCostBasis = (originalCostBasis / yearEndValues[assetKey]) * amountToSell;
+				const gain = amountToSell - proportionalCostBasis;
+
+				if (assetKey === 'gold') {
+					goldCapitalGains += gain;
+				} else {
+					capitalGains += gain;
+				}
+
+				this.assetCostBasis[assetKey] -= proportionalCostBasis;
+				yearEndValues[assetKey] -= amountToSell;
+				capitalPool += amountToSell;
 			}
 		}
 
@@ -209,26 +229,25 @@ export class ModelReturns {
 		for (const assetKey in yearEndValues) {
 			if (yearEndValues[assetKey] < targetAmounts[assetKey]) {
 				const amountNeeded = targetAmounts[assetKey] - yearEndValues[assetKey];
-				if (capitalPool >= amountNeeded) {
-					yearEndValues[assetKey] += amountNeeded;
-					capitalPool -= amountNeeded;
-				} else {
-					yearEndValues[assetKey] += capitalPool;
-					capitalPool = 0;
-				}
+				const amountToBuy = Math.min(amountNeeded, capitalPool);
+
+				yearEndValues[assetKey] += amountToBuy;
+				this.assetCostBasis[assetKey] = (this.assetCostBasis[assetKey] || 0) + amountToBuy;
+				capitalPool -= amountToBuy;
 			}
 		}
 
 		// If there is any capital left over after rebalancing, it is allocated to T-Bills.
-		// This assumes that T-Bills are a safe, liquid asset to hold the remaining cash.
 		if (capitalPool > 0) {
 			if (!yearEndValues['TBill']) {
 				yearEndValues['TBill'] = 0;
+				this.assetCostBasis['TBill'] = 0;
 			}
 			yearEndValues['TBill'] += capitalPool;
+			this.assetCostBasis['TBill'] += capitalPool;
 		}
 
-		return { capitalGains, assetValues: yearEndValues };
+		return { capitalGains, goldCapitalGains, assetValues: yearEndValues };
 	}
 
 	private _processIncomeAsset(
@@ -242,9 +261,11 @@ export class ModelReturns {
 
 		if (!tracker.hasRecords()) {
 			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, assetStartValue);
+			this.assetCostBasis[assetKey] = assetStartValue;
 		} else {
 			const income = tracker.getChangeInValue(lastYear);
 			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, income);
+			this.assetCostBasis[assetKey] += income;
 		}
 		return tracker.totalIncome();
 	}
