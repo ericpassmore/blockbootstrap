@@ -38,6 +38,7 @@ export const actions: Actions = {
 		const allocationsJSON = formData.get('allocations');
 		const rebalance = formData.get('rebalance') === 'on';
 		const inflationAdjusted = formData.get('inflationAdjusted') === 'on';
+		const returnWindow = Number(formData.get('returnWindow'));
 
 		// Basic validation for form data
 		if (!startingAmount || !allocationsJSON) {
@@ -73,7 +74,7 @@ export const actions: Actions = {
 			q3Series: forecastService.q3Series,
 			averageCAGR: forecastService.averageCAGR,
 			finalValueStdDev: forecastService.finalValueStdDev,
-			options: [rebalance, inflationAdjusted]
+			options: [rebalance, inflationAdjusted, returnWindow]
 		};
 	}
 };

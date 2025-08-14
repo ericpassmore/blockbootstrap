@@ -8,7 +8,7 @@ interface PercentileResult {
 }
 
 export interface Forecast {
-	blockNumber: number;
+	blockNumbers: number[]; // Changed from blockNumber to blockNumbers
 	results: any[]; // YearlyReturn[]
 	taxes: number;
 	finalValue: number;
@@ -78,12 +78,37 @@ export class ForecastService {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
 		const numberOfBlocks = BlockData.getAllData().size;
+		let blockCombinations: number[][] = [];
 
-		for (let i = 1; i <= numberOfBlocks; i++) {
+		if (options.returnWindow === 10) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				blockCombinations.push([i]);
+			}
+		} else if (options.returnWindow === 20) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				for (let j = 1; j <= numberOfBlocks; j++) {
+					if (i !== j) {
+						blockCombinations.push([i, j]);
+					}
+				}
+			}
+		} else if (options.returnWindow === 30) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				for (let j = 1; j <= numberOfBlocks; j++) {
+					for (let k = 1; k <= numberOfBlocks; k++) {
+						if (i !== j && i !== k && j !== k) {
+							blockCombinations.push([i, j, k]);
+						}
+					}
+				}
+			}
+		}
+
+		for (const blockNumbers of blockCombinations) {
 			const model = await ModelReturns.create(
 				this.startingAmount,
 				allocations,
-				i,
+				blockNumbers,
 				options
 			);
 			const currentYear = new Date().getFullYear();
@@ -93,7 +118,7 @@ export class ForecastService {
 				taxes += result.taxes;
 			}
 			allForecasts.push({
-				blockNumber: i,
+				blockNumbers: blockNumbers,
 				results: model.results,
 				taxes: taxes,
 				finalValue: model.finalValue,
@@ -118,7 +143,7 @@ export class ForecastService {
 		const pos = (sortedForecasts.length - 1) * percentile;
 		const index = Math.round(pos);
 		const result = sortedForecasts[index];
-		return { value: result.finalValue, seriesNumber: result.blockNumber };
+		return { value: result.finalValue, seriesNumber: result.blockNumbers[0] }; // Use the first block number for display
 	}
 
 	private simpleArithmaticMean(values: number[]): number {
@@ -143,26 +168,42 @@ export class ForecastService {
 			statistics.medianResult.seriesNumber,
 			statistics.q3Result.seriesNumber
 		]);
-		const regularForecasts = allForecasts.filter((f) => !specialSeriesNumbers.has(f.blockNumber));
-		const q1Forecast = allForecasts.find((f) => f.blockNumber === statistics.q1Result.seriesNumber);
+		const regularForecasts = allForecasts.filter((f) => !specialSeriesNumbers.has(f.blockNumbers[0]));
+		const q1Forecast = allForecasts.find((f) => f.blockNumbers[0] === statistics.q1Result.seriesNumber);
 		const medianForecast = allForecasts.find(
-			(f) => f.blockNumber === statistics.medianResult.seriesNumber
+			(f) => f.blockNumbers[0] === statistics.medianResult.seriesNumber
 		);
-		const q3Forecast = allForecasts.find((f) => f.blockNumber === statistics.q3Result.seriesNumber);
+		const q3Forecast = allForecasts.find((f) => f.blockNumbers[0] === statistics.q3Result.seriesNumber);
 		const appendedSeries = new Set();
 		const firstForecasts: Forecast[] = [];
 
 		if (q1Forecast) {
 			firstForecasts.push(q1Forecast);
-			appendedSeries.add(q1Forecast.blockNumber);
+			appendedSeries.add(q1Forecast.blockNumbers[0]);
 		}
-		if (medianForecast && !appendedSeries.has(medianForecast.blockNumber)) {
+		if (medianForecast && !appendedSeries.has(medianForecast.blockNumbers[0])) {
 			firstForecasts.push(medianForecast);
-			appendedSeries.add(medianForecast.blockNumber);
+			appendedSeries.add(medianForecast.blockNumbers[0]);
 		}
-		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumber)) {
+		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumbers[0])) {
 			firstForecasts.push(q3Forecast);
 		}
-		return [...firstForecasts, ...regularForecasts];
+		let finalRegularForecasts = regularForecasts;
+
+		// Thin forecasts if there are more than 50 regular forecasts
+		if (regularForecasts.length > 50) {
+			const sortedRegularForecasts = [...regularForecasts].sort((a, b) => a.finalValue - b.finalValue);
+			const interval = Math.floor(sortedRegularForecasts.length / (50 - firstForecasts.length)); // Adjust target count for already included special forecasts
+			finalRegularForecasts = [];
+			for (let i = 0; i < sortedRegularForecasts.length; i += interval) {
+				if (finalRegularForecasts.length < 50 - firstForecasts.length) {
+					finalRegularForecasts.push(sortedRegularForecasts[i]);
+				} else {
+					break;
+				}
+			}
+		}
+
+		return [...firstForecasts, ...finalRegularForecasts];
 	}
 }

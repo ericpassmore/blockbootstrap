@@ -1,12 +1,14 @@
 export type ForecastOptionsInterface = {
     rebalance: boolean;
     inflationAdjusted: boolean;
+    returnWindow: number;
 };
 
 export class ForecastOptions {
     constructor(
         public rebalance: boolean = false,
-        public inflationAdjusted: boolean = false
+        public inflationAdjusted: boolean = false,
+        public returnWindow: number = 10
     ) {}
 
     public rebalanceOn() {

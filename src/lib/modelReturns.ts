@@ -5,6 +5,8 @@ import { AssetReturns } from '$lib/assetReturns';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
 
+type IncomeAssetKey = Extract<keyof MarketData, 'treasury10Year' | 'baaCorp'>;
+
 /**
  * Defines the structure for a user's portfolio allocation.
  * The `key` is type-safe and must correspond to an asset in the MarketData interface.
@@ -50,7 +52,7 @@ export class ModelReturns {
 	constructor(
 		startingAmount: number,
 		allocations: Allocation[],
-		blockNumber: number,
+		blockNumbers: number[],
 		options: ForecastOptions
 	) {
 		this.startingAmount = startingAmount;
@@ -62,133 +64,126 @@ export class ModelReturns {
 		);
 		this.incomeAssetTrackers.set('baaCorp', new AssetReturns('baaCorp', 'BAA Corporate Bonds'));
 
-		const block = BlockData.getSeries(blockNumber);
-		if (!block || block.length === 0) {
-			console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
-			return;
-		}
-
-		// Calculate the initial dollar value for each asset based on the starting amount and allocation percentages.
-		let assetValues: AssetValues = this._initializeAssetValues(allocations);
-
-		// This variable tracks the total portfolio value, updated annually through the simulation.
 		let currentPortfolioValue = startingAmount;
+		let currentYearOffset = 0;
 
-		for (const yearData of block) {
-			const startOfYearValue = currentPortfolioValue;
-			// series starts at one not zero so adjust down by 1
-			const historicalReferenceYear = BlockData.getHistoricalYear(blockNumber, yearData.year);
-			const lastYear = historicalReferenceYear - 1;
-			let ordinaryIncome = 0;
-			let dividendIncome = 0;
-			let endOfYearValue = 0;
-			let capitalGains = 0;
-			let goldCapitalGains = 0;
-
-			// Calculate end-of-year value for each asset based on its return
-			for (const assetKey in assetValues) {
-				const key = assetKey as keyof typeof assetValues;
-				const assetStartValue = assetValues[key];
-				let assetReturnPercentage =
-					key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
-
-				if (options.inflationAdjusted) {
-					assetReturnPercentage -= yearData.inflation || 0;
-				}
-
-				// Identify and sum up different types of income for tax purposes
-				switch (key) {
-					case 'TBill':
-						ordinaryIncome += assetStartValue * (assetReturnPercentage / 100);
-						break;
-					case 'baaCorp':
-					case 'treasury10Year':
-						ordinaryIncome += this._processIncomeAsset(
-							key,
-							assetStartValue,
-							historicalReferenceYear,
-							lastYear
-						);
-						break;
-					case 'sp500':
-						const dividendYield = yearData.sp500DividendYield || 0;
-						dividendIncome += assetStartValue * (dividendYield / 100);
-						break;
-					case 'usSmallCap':
-						const smallCapDividendYield = yearData.usSmallCapDividendYield || 0;
-						dividendIncome += assetStartValue * (smallCapDividendYield / 100);
-						break;
-				}
-
-				const valueAfterReturn = assetStartValue * (1 + assetReturnPercentage / 100);
-				assetValues[key] = valueAfterReturn;
-				endOfYearValue += valueAfterReturn;
+		for (const blockNumber of blockNumbers) {
+			const block = BlockData.getSeries(blockNumber);
+			if (!block || block.length === 0) {
+				console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
+				continue;
 			}
 
-			if (options.rebalance) {
-				const rebalanceResult = this._annualRebalance(assetValues, allocations);
-				assetValues = rebalanceResult.assetValues;
-				capitalGains = rebalanceResult.capitalGains;
-				goldCapitalGains = rebalanceResult.goldCapitalGains;
-			} else {
-                // not really needed makes me feel better
-				capitalGains = 0;
-                goldCapitalGains = 0;
+			let assetValues: AssetValues = this._initializeAssetValues(allocations, currentPortfolioValue);
+
+			for (const yearData of block) {
+				const startOfYearValue = currentPortfolioValue;
+				const historicalReferenceYear = BlockData.getHistoricalYear(blockNumber, yearData.year);
+				const lastYear = historicalReferenceYear - 1;
+				let ordinaryIncome = 0;
+				let dividendIncome = 0;
+				let endOfYearValue = 0;
+				let capitalGains = 0;
+				let goldCapitalGains = 0;
+
+				for (const assetKey in assetValues) {
+					const key = assetKey as keyof typeof assetValues;
+					const assetStartValue = assetValues[key];
+					let assetReturnPercentage =
+						key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
+
+					if (options.inflationAdjusted) {
+						assetReturnPercentage -= yearData.inflation || 0;
+					}
+
+					switch (key) {
+						case 'TBill':
+							ordinaryIncome += assetStartValue * (assetReturnPercentage / 100);
+							break;
+						case 'baaCorp':
+						case 'treasury10Year':
+							ordinaryIncome += this._processIncomeAsset(
+								key,
+								assetStartValue,
+								historicalReferenceYear,
+								lastYear
+							);
+							break;
+						case 'sp500':
+							const dividendYield = yearData.sp500DividendYield || 0;
+							dividendIncome += assetStartValue * (dividendYield / 100);
+							break;
+						case 'usSmallCap':
+							const smallCapDividendYield = yearData.usSmallCapDividendYield || 0;
+							dividendIncome += assetStartValue * (smallCapDividendYield / 100);
+							break;
+					}
+
+					const valueAfterReturn = assetStartValue * (1 + assetReturnPercentage / 100);
+					assetValues[key] = valueAfterReturn;
+					endOfYearValue += valueAfterReturn;
+				}
+
+				if (options.rebalance) {
+					const rebalanceResult = this._annualRebalance(assetValues, allocations);
+					assetValues = rebalanceResult.assetValues;
+					capitalGains = rebalanceResult.capitalGains;
+					goldCapitalGains = rebalanceResult.goldCapitalGains;
+				} else {
+					capitalGains = 0;
+					goldCapitalGains = 0;
+				}
+
+				const taxes = this.taxModel.calculateTaxes(
+					ordinaryIncome,
+					dividendIncome + capitalGains,
+					goldCapitalGains
+				);
+
+				const growth = endOfYearValue - startOfYearValue;
+
+				const endOfYearPercentageAllocations: Allocation[] = allocations.map((asset) => ({
+					...asset,
+					value: endOfYearValue > 0 ? (assetValues[asset.key] / endOfYearValue) * 100 : 0
+				}));
+
+				this.results.push({
+					year: yearData.year + currentYearOffset, // Adjust year for concatenated blocks
+					startValue: startOfYearValue,
+					endValue: endOfYearValue,
+					growth: growth,
+					taxes: taxes,
+					percentageAllocations: endOfYearPercentageAllocations
+				});
+
+				currentPortfolioValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
 			}
-
-			// Calculate taxes on the income generated during the year
-			const taxes = this.taxModel.calculateTaxes(
-                ordinaryIncome, 
-                dividendIncome+capitalGains, 
-                goldCapitalGains);
-
-			// Subtract taxes from the portfolio value to get the true end-of-year value
-			const growth = endOfYearValue - startOfYearValue;
-
-			// Calculate the new percentage allocation for each asset at year-end
-			const endOfYearPercentageAllocations: Allocation[] = allocations.map((asset) => ({
-				...asset,
-				value: endOfYearValue > 0 ? (assetValues[asset.key] / endOfYearValue) * 100 : 0
-			}));
-
-			this.results.push({
-				year: yearData.year,
-				startValue: startOfYearValue,
-				endValue: endOfYearValue,
-				growth: growth,
-				taxes: taxes,
-				percentageAllocations: endOfYearPercentageAllocations
-			});
-
-			// This is the fix: update the portfolio value for the next year's calculation.
-			currentPortfolioValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
+			currentYearOffset += block.length; // Increment year offset for next block
 		}
-		// Set the final value after the loop has completed.
 		this.finalValue = currentPortfolioValue;
 	}
 
-	// New static factory method
 	public static async create(
 		startingAmount: number,
 		allocations: Allocation[],
-		blockNumber: number,
+		blockNumbers: number[],
 		options: ForecastOptions
 	): Promise<ModelReturns> {
-		await ConstantRateReturns.init(); // Ensure CSV is loaded
+		await ConstantRateReturns.init();
 		await BlockData.init();
-		return new ModelReturns(startingAmount, allocations, blockNumber, options);
+		return new ModelReturns(startingAmount, allocations, blockNumbers, options);
 	}
 
-	private _initializeAssetValues(allocations: Allocation[]): AssetValues {
+	private _initializeAssetValues(allocations: Allocation[], currentPortfolioValue: number): AssetValues {
 		const assetValues: AssetValues = {};
-		// Calculate the initial dollar value for each allocated asset
 		for (const asset of allocations) {
-			const startValue = (this.startingAmount * asset.value) / 100;
+			const startValue = (currentPortfolioValue * asset.value) / 100;
 			assetValues[asset.key] = startValue;
 			this.assetCostBasis[asset.key] = startValue;
 		}
 		return assetValues;
 	}
+
 
 	private _annualRebalance(
 		yearEndValues: AssetValues,
@@ -250,13 +245,13 @@ export class ModelReturns {
 	}
 
 	private _processIncomeAsset(
-		assetKey: keyof MarketData,
+		assetKey: IncomeAssetKey,
 		assetStartValue: number,
 		historicalReferenceYear: number,
 		lastYear: number
 	): number {
 		const tracker = this.incomeAssetTrackers.get(assetKey);
-		if (!tracker) return 0;
+		if (!tracker) return 0; // Should not happen with correct setup
 
 		if (!tracker.hasRecords()) {
 			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, assetStartValue);
@@ -276,7 +271,7 @@ export class ModelReturns {
 	): void {
 		const assetYield = ConstantRateReturns.getYield(
 			historicalReferenceYear,
-			tracker.assetKey as keyof MarketData
+			tracker.assetKey as IncomeAssetKey
 		);
 		tracker.addRecord(historicalReferenceYear, purchaseAmount, assetYield);
 	}

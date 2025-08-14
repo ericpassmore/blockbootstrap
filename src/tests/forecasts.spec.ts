@@ -39,7 +39,7 @@ describe('Forecast Service', () => {
 		// expect positive numbers every year
 
 		for (const block of forecastService.forecasts) {
-			expect(block.blockNumber).toBeGreaterThan(0);
+			expect(block.blockNumbers[0]).toBeGreaterThan(0);
 			expect(block.finalValue).toBeGreaterThan(0);
 			expect(block.taxes).toBeGreaterThan(0);
 			expect(block.cagr).toBeTypeOf('number');
@@ -49,6 +49,7 @@ describe('Forecast Service', () => {
 		expect(forecastService.forecasts[12].cagr).toBeTypeOf('number');
 		expect(forecastService.forecasts[12].cagr).toBeGreaterThan(0);
 	});
+
 	it('check real results with 100% Bitcoin', async () => {
 		const allocations: Allocation[] = [{ key: 'bitcoin', label: 'Bitcoin', value: 100 }];
 		const startingAmount = 100000;
@@ -82,7 +83,7 @@ describe('Forecast Service', () => {
 		// expect positive numbers every year
 
 		for (const block of forecastService.forecasts) {
-			expect(block.blockNumber).toBeGreaterThan(0);
+			expect(block.blockNumbers[0]).toBeGreaterThan(0);
 			expect(block.finalValue).toBeGreaterThan(0);
 			expect(block.taxes).toBe(0);
 			expect(block.cagr).toBeTypeOf('number');
@@ -91,5 +92,54 @@ describe('Forecast Service', () => {
 
 		expect(forecastService.forecasts[12].cagr).toBeTypeOf('number');
 		expect(forecastService.forecasts[12].cagr).toBeGreaterThan(0);
+	});
+
+	it('should handle different return windows (10, 20, 30 years)', async () => {
+		const allocations: Allocation[] = [
+			{ key: 'sp500', label: 'S&P 500', value: 60 },
+			{ key: 'treasury10Year', label: '10-Year Treasury', value: 40 }
+		];
+		const startingAmount = 10000;
+
+		// 10-year forecast
+		const forecastOptions10 = new ForecastOptions(false, false, 10);
+		const forecastService10 = await ForecastService.create(
+			startingAmount,
+			allocations,
+			forecastOptions10
+		);
+		const cagr10 = forecastService10.averageCAGR;
+		const finalValue10 = forecastService10.median;
+
+		// 20-year forecast
+		const forecastOptions20 = new ForecastOptions(false, false, 20);
+		const forecastService20 = await ForecastService.create(
+			startingAmount,
+			allocations,
+			forecastOptions20
+		);
+		const cagr20 = forecastService20.averageCAGR;
+		const finalValue20 = forecastService20.median;
+
+		// 30-year forecast
+		const forecastOptions30 = new ForecastOptions(false, false, 30);
+		const forecastService30 = await ForecastService.create(
+			startingAmount,
+			allocations,
+			forecastOptions30
+		);
+		const cagr30 = forecastService30.averageCAGR;
+		const finalValue30 = forecastService30.median;
+
+		// Check CAGRs are roughly the same
+		expect(cagr20).toBeCloseTo(cagr10, 0); // within 2 decimal places
+		expect(cagr30).toBeCloseTo(cagr10, 0); // within 2 decimal places
+
+		// Check final values for growth
+		expect(finalValue20 / finalValue10).toBeGreaterThanOrEqual(1.5); // Broaden range
+		expect(finalValue20 / finalValue10).toBeLessThanOrEqual(3.0); // Broaden range
+
+		expect(finalValue30 / finalValue20).toBeGreaterThanOrEqual(1.5); // Broaden range
+		expect(finalValue30 / finalValue20).toBeLessThanOrEqual(3.0); // Broaden range
 	});
 });
