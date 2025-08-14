@@ -94,6 +94,62 @@ describe('Forecast Service', () => {
 		expect(forecastService.forecasts[12].cagr).toBeGreaterThan(0);
 	});
 
+	it('it should handle rebalencing correctly', async () => {
+		const allocations: Allocation[] = [
+			{ key: 'sp500', label: 'S&P 500', value: 45 },
+			{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
+			{ key: 'TBill', label: 'T-Bill', value: 0 },
+			{ key: 'treasury10Year', label: '10-Year Treasury', value: 10 },
+			{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
+			{ key: 'realEstate', label: 'Real Estate', value: 20 },
+			{ key: 'gold', label: 'Gold', value: 5 },
+			{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
+		];
+		const startingAmount = 10000;
+
+		// 10-year forecast
+		const withRebalancing = new ForecastOptions(true, false, 10);
+		const forecastService10 = await ForecastService.create(
+			startingAmount,
+			allocations,
+			withRebalancing
+		);
+		const cagr10 = forecastService10.averageCAGR;
+		const finalValue10 = forecastService10.median;
+		// Check CAGRs are roughly the same
+		expect(cagr10).toBeGreaterThan(0);
+		expect(cagr10).toBeLessThan(50);
+		expect(finalValue10).toBeGreaterThan(startingAmount);
+	});
+
+	it('it should handle inflation adjustment correctly', async () => {
+		const allocations: Allocation[] = [
+			{ key: 'sp500', label: 'S&P 500', value: 45 },
+			{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
+			{ key: 'TBill', label: 'T-Bill', value: 0 },
+			{ key: 'treasury10Year', label: '10-Year Treasury', value: 10 },
+			{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
+			{ key: 'realEstate', label: 'Real Estate', value: 20 },
+			{ key: 'gold', label: 'Gold', value: 5 },
+			{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
+		];
+		const startingAmount = 10000;
+
+		// 10-year forecast
+		const withRebalancing = new ForecastOptions(false, true, 10);
+		const forecastService10 = await ForecastService.create(
+			startingAmount,
+			allocations,
+			withRebalancing
+		);
+		const cagr10 = forecastService10.averageCAGR;
+		const finalValue10 = forecastService10.median;
+		// Check CAGRs are roughly the same
+		expect(cagr10).toBeGreaterThan(0);
+		expect(cagr10).toBeLessThan(50);
+		expect(finalValue10).toBeGreaterThan(startingAmount);
+	});
+
 	it('should handle different return windows (10, 20, 30 years)', async () => {
 		const allocations: Allocation[] = [
 			{ key: 'sp500', label: 'S&P 500', value: 60 },

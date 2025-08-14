@@ -103,7 +103,6 @@ export class ForecastService {
 				}
 			}
 		}
-
 		for (const blockNumbers of blockCombinations) {
 			const model = await ModelReturns.create(
 				this.startingAmount,
@@ -159,21 +158,24 @@ export class ForecastService {
 		return Math.sqrt(variance);
 	}
 
-	private reorderForecasts(
-		allForecasts: Forecast[],
-		statistics: ReturnType<typeof this.calculateStatistics>
-	): Forecast[] {
+	private reorderForecasts(allForecasts: Forecast[], statistics: StatisticsResult): Forecast[] {
 		const specialSeriesNumbers = new Set([
 			statistics.q1Result.seriesNumber,
 			statistics.medianResult.seriesNumber,
 			statistics.q3Result.seriesNumber
 		]);
-		const regularForecasts = allForecasts.filter((f) => !specialSeriesNumbers.has(f.blockNumbers[0]));
-		const q1Forecast = allForecasts.find((f) => f.blockNumbers[0] === statistics.q1Result.seriesNumber);
+		const regularForecasts = allForecasts.filter(
+			(f) => !specialSeriesNumbers.has(f.blockNumbers[0])
+		);
+		const q1Forecast = allForecasts.find(
+			(f) => f.blockNumbers[0] === statistics.q1Result.seriesNumber
+		);
 		const medianForecast = allForecasts.find(
 			(f) => f.blockNumbers[0] === statistics.medianResult.seriesNumber
 		);
-		const q3Forecast = allForecasts.find((f) => f.blockNumbers[0] === statistics.q3Result.seriesNumber);
+		const q3Forecast = allForecasts.find(
+			(f) => f.blockNumbers[0] === statistics.q3Result.seriesNumber
+		);
 		const appendedSeries = new Set();
 		const firstForecasts: Forecast[] = [];
 
@@ -192,7 +194,9 @@ export class ForecastService {
 
 		// Thin forecasts if there are more than 50 regular forecasts
 		if (regularForecasts.length > 50) {
-			const sortedRegularForecasts = [...regularForecasts].sort((a, b) => a.finalValue - b.finalValue);
+			const sortedRegularForecasts = [...regularForecasts].sort(
+				(a, b) => a.finalValue - b.finalValue
+			);
 			const interval = Math.floor(sortedRegularForecasts.length / (50 - firstForecasts.length)); // Adjust target count for already included special forecasts
 			finalRegularForecasts = [];
 			for (let i = 0; i < sortedRegularForecasts.length; i += interval) {

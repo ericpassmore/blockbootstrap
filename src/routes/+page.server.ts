@@ -54,7 +54,7 @@ export const actions: Actions = {
 		}
 
 		// Instantiate the service to perform all calculations and data transformations.
-		const forecastOptions = new ForecastOptions(rebalance, inflationAdjusted);
+		const forecastOptions = new ForecastOptions(rebalance, inflationAdjusted, returnWindow);
 		const forecastService = await ForecastService.create(
 			startingAmount,
 			allocations,

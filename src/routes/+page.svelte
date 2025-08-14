@@ -30,7 +30,6 @@
 	let rebalance = form?.options?.[0] || false;
 	let inflationAdjusted = form?.options?.[1] || false;
 	let returnWindow = form?.options?.[2] || 10;
-	let showThinkingIndicator = false;
 
 	onMount(() => {
 		isLoggedIn = !!localStorage.getItem('token');
@@ -115,7 +114,7 @@
 			// Use labels from the first forecast, assuming they are all the same length
 			labels: ['Start', ...form.forecasts[0].results.map((r) => r.year)],
 			datasets: form.forecasts.map((forecast) => ({
-				label: `Block ${forecast.blockNumbers[0]}`, // Use the first block number for the label
+				label: `Blocks ${forecast.blockNumbers.join(', ')}`,
 				data: [form.startingAmount, ...forecast.results.map((r) => r.endValue)],
 				// series 46 and greater have partial data
 				borderColor: selectChartColor(
@@ -163,53 +162,13 @@
 				options: chartOptions
 			});
 		}
+		scrollPastForm();
 	}
 
 	// Ensure the chart instance is destroyed when the component is unmounted to prevent memory leaks
 	onDestroy(() => {
 		chartInstance?.destroy();
 	});
-
-	async function handleSubmit(event: Event) {
-		event.preventDefault(); // prevent full page reload
-
-		if (returnWindow === 20 || returnWindow === 30) {
-			showThinkingIndicator = true;
-		}
-
-		try {
-			// Build form data manually
-			const formData = new FormData(event.target as HTMLFormElement);
-			formData.set('allocations', JSON.stringify(allocations));
-
-			// Send request to your SvelteKit endpoint
-			const res = await fetch('?/runForecast', {
-				method: 'POST',
-				body: formData
-			});
-
-			if (!res.ok) {
-				throw new Error(`Server error: ${res.status}`);
-			}
-
-			// If server returns JSON
-			const data: FormData = await res.json();
-
-			// Do something with the returned data
-			console.log('Forecast results:', data);
-
-			// Update the form data to trigger reactivity
-			form = data;
-			scrollPastForm();
-
-		} catch (err) {
-			console.error('Forecast error:', err);
-			// Optionally, update form.error to display to the user
-			form = { ...form, error: (err as Error).message, success: false };
-		} finally {
-			showThinkingIndicator = false;
-		}
-	}
 </script>
 
 <div class="form-container">
@@ -226,7 +185,7 @@
 	</div>
 
 	<!-- This form now submits data to the 'runForecast' action on the server -->
-	<form on:submit={handleSubmit}>
+	<form method="POST" id="main-form" action="?/runForecast">
 		<div class="form-group starting-amount-group">
 			<label for="startingAmount">Starting Investment ($)</label>
 			<input
@@ -285,11 +244,29 @@
 						<div class="checkbox-label-row">
 							<label for="returnWindow">Return Window (Years)</label>
 							<div class="radio-group">
-								<input type="radio" id="returnWindow10" name="returnWindow" value="10" bind:group={returnWindow} />
+								<input
+									type="radio"
+									id="returnWindow10"
+									name="returnWindow"
+									value="10"
+									bind:group={returnWindow}
+								/>
 								<label for="returnWindow10">10</label>
-								<input type="radio" id="returnWindow20" name="returnWindow" value="20" bind:group={returnWindow} />
+								<input
+									type="radio"
+									id="returnWindow20"
+									name="returnWindow"
+									value="20"
+									bind:group={returnWindow}
+								/>
 								<label for="returnWindow20">20</label>
-								<input type="radio" id="returnWindow30" name="returnWindow" value="30" bind:group={returnWindow} />
+								<input
+									type="radio"
+									id="returnWindow30"
+									name="returnWindow"
+									value="30"
+									bind:group={returnWindow}
+								/>
 								<label for="returnWindow30">30</label>
 							</div>
 						</div>
@@ -301,12 +278,6 @@
 
 		<button type="submit" disabled={isInvalid}>Run Forecast</button>
 	</form>
-
-	{#if showThinkingIndicator}
-		<div class="thinking-indicator">
-			<p>Calculating forecasts for {returnWindow} years... This may take a moment.</p>
-		</div>
-	{/if}
 
 	<!-- Results Section: This will only render when the form action returns data -->
 	{#if form?.success}
@@ -327,9 +298,7 @@
 					{currencyFormatter.format(form.finalValueStdDev)}
 				</p>
 			</div>
-			<p class="disclaimer">
-				Conservative is 1st Quartile. Optimistic is 3rd Quartile.
-			</p>
+			<p class="disclaimer">Conservative is 1st Quartile. Optimistic is 3rd Quartile.</p>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
 				<div id="customLegend">
@@ -362,7 +331,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each form.forecasts as blockResult (blockResult.blockNumbers[0])}
+					{#each form.forecasts as blockResult (blockResult.blockNumbers.join('-'))}
 						<tr>
 							<td>{blockResult.blockNumbers.join(', ')}</td>
 							<td>{currencyFormatter.format(blockResult.finalValue)}</td>
