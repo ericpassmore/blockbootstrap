@@ -88,14 +88,18 @@ export class ForecastService {
 		} else if (options.returnWindow === 20) {
 			for (let i = 1; i <= numberOfBlocks; i++) {
 				for (let j = i + 1; j <= numberOfBlocks; j++) {
-					blockCombinations.push([i, j]);
+					if (Math.abs(i - j) >= 10) {
+						blockCombinations.push([i, j]);
+					}
 				}
 			}
 		} else if (options.returnWindow === 30) {
 			for (let i = 1; i <= numberOfBlocks; i++) {
 				for (let j = i + 1; j <= numberOfBlocks; j++) {
 					for (let k = j + 1; k <= numberOfBlocks; k++) {
-						blockCombinations.push([i, j, k]);
+						if (Math.abs(i - j) >= 10 && Math.abs(j - k) >= 10) {
+							blockCombinations.push([i, j, k]);
+						}
 					}
 				}
 			}
