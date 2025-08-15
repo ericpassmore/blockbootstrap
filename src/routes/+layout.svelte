@@ -1,6 +1,8 @@
 <script lang="ts">
 	let { children } = $props(); // Access the children prop
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 
 	let isLoginPopoverOpen = $state(false);
 	let emailSubmissionSuccessfull = $state(false);
@@ -31,6 +33,23 @@
 		message = '';
 		emailSubmissionSuccessfull = false;
 	}
+	const goatcounterUrl = 'https://blockbootstrap.goatcounter.com/count';
+
+	onMount(() => {
+		// Load the GoatCounter script dynamically
+		const script = document.createElement('script');
+		script.src = '//gc.zgo.at/count.js';
+		script.async = true;
+		script.setAttribute('data-goatcounter', goatcounterUrl);
+		document.body.appendChild(script);
+
+		// Track SPA navigations
+		afterNavigate(() => {
+			if (window.goatcounter) {
+				window.goatcounter.count();
+			}
+		});
+	});
 </script>
 
 <nav>
