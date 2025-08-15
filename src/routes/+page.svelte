@@ -259,64 +259,62 @@
 			{/if}
 		</div>
 
-		{#if isLoggedIn}
-			<div class="info-block advanced-options">
-				<h3>Advanced Options</h3>
-				<div class="checkbox-container">
-					<div class="checkbox-item">
-						<div class="checkbox-label-row">
-							<input type="checkbox" id="rebalance" name="rebalance" bind:checked={rebalance} />
-							<label for="rebalance">Rebalance</label>
-						</div>
-						<small class="tooltip">annual reallocation</small>
+		<div class="info-block advanced-options">
+			<h3>Advanced Options</h3>
+			<div class="checkbox-container">
+				<div class="checkbox-item">
+					<div class="checkbox-label-row">
+						<input type="checkbox" id="rebalance" name="rebalance" bind:checked={rebalance} />
+						<label for="rebalance">Rebalance</label>
 					</div>
-					<div class="checkbox-item">
-						<div class="checkbox-label-row">
+					<small class="tooltip">annual reallocation</small>
+				</div>
+				<div class="checkbox-item">
+					<div class="checkbox-label-row">
+						<input
+							type="checkbox"
+							id="inflationAdjusted"
+							name="inflationAdjusted"
+							bind:checked={inflationAdjusted}
+						/>
+						<label for="inflationAdjusted">Inflation Adjusted</label>
+					</div>
+					<small class="tooltip">adjust returns by inflation</small>
+				</div>
+				<div class="checkbox-item">
+					<div class="checkbox-label-row">
+						<label for="returnWindow">Years</label>
+						<div class="radio-group">
 							<input
-								type="checkbox"
-								id="inflationAdjusted"
-								name="inflationAdjusted"
-								bind:checked={inflationAdjusted}
+								type="radio"
+								id="returnWindow10"
+								name="returnWindow"
+								value={10}
+								bind:group={returnWindow}
 							/>
-							<label for="inflationAdjusted">Inflation Adjusted</label>
+							<label for="returnWindow10">10</label>
+							<input
+								type="radio"
+								id="returnWindow20"
+								name="returnWindow"
+								value={20}
+								bind:group={returnWindow}
+							/>
+							<label for="returnWindow20">20</label>
+							<input
+								type="radio"
+								id="returnWindow30"
+								name="returnWindow"
+								value={30}
+								bind:group={returnWindow}
+							/>
+							<label for="returnWindow30">30</label>
 						</div>
-						<small class="tooltip">adjust returns by inflation</small>
 					</div>
-					<div class="checkbox-item">
-						<div class="checkbox-label-row">
-							<label for="returnWindow">Years</label>
-							<div class="radio-group">
-								<input
-									type="radio"
-									id="returnWindow10"
-									name="returnWindow"
-									value={10}
-									bind:group={returnWindow}
-								/>
-								<label for="returnWindow10">10</label>
-								<input
-									type="radio"
-									id="returnWindow20"
-									name="returnWindow"
-									value={20}
-									bind:group={returnWindow}
-								/>
-								<label for="returnWindow20">20</label>
-								<input
-									type="radio"
-									id="returnWindow30"
-									name="returnWindow"
-									value={30}
-									bind:group={returnWindow}
-								/>
-								<label for="returnWindow30">30</label>
-							</div>
-						</div>
-						<small class="tooltip">length of forecast</small>
-					</div>
+					<small class="tooltip">length of forecast</small>
 				</div>
 			</div>
-		{/if}
+		</div>
 
 		<button type="submit" disabled={isInvalid}>Run Forecast</button>
 	</form>
