@@ -17,14 +17,14 @@ describe('Taxes/Appreciation', () => {
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithoutRebalance
 			);
 
 			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithRebalance
 			);
 
@@ -57,14 +57,14 @@ describe('Taxes/Appreciation', () => {
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithoutRebalance
 			);
 
 			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithRebalance
 			);
 
@@ -84,7 +84,7 @@ describe('Taxes/Appreciation', () => {
 		// options 
 		const defaultOptions = new ForecastOptions();
 
-		const model = await ModelReturns.create(startingAmount, allocations, 9, defaultOptions);
+		const model = await ModelReturns.create(startingAmount, allocations, [9], defaultOptions); // Wrap in array
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -105,7 +105,7 @@ describe('Taxes/Appreciation', () => {
 		const startingAmount = 100000;
 		// options 
 		const defaultOptions = new ForecastOptions();
-		const model = await ModelReturns.create(startingAmount, allocations, 9, defaultOptions);
+		const model = await ModelReturns.create(startingAmount, allocations, [9], defaultOptions); // Wrap in array
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -124,7 +124,7 @@ describe('Taxes/Appreciation', () => {
 		const startingAmount = 100000;
 		// options 
 		const defaultOptions = new ForecastOptions();
-		const model = await ModelReturns.create(startingAmount, allocations, 4, defaultOptions);
+		const model = await ModelReturns.create(startingAmount, allocations, [4], defaultOptions); // Wrap in array
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
@@ -143,7 +143,7 @@ describe('Taxes/Appreciation', () => {
 		const startingAmount = 100000;
 		// options 
 		const defaultOptions = new ForecastOptions();
-		const model = await ModelReturns.create(startingAmount, allocations, 1, defaultOptions);
+		const model = await ModelReturns.create(startingAmount, allocations, [1], defaultOptions); // Wrap in array
 		expect(model.finalValue).toBeTypeOf('number');
 		expect(model.finalValue).not.toBeNaN();
 		expect(model.finalValue).toBeGreaterThan(5000);
@@ -164,13 +164,13 @@ describe('Taxes/Appreciation', () => {
 			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithRebalance
 			);
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithoutRebalance
 			);
 
@@ -194,13 +194,13 @@ describe('Taxes/Appreciation', () => {
 			const modelWithRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithRebalance
 			);
 			const modelWithoutRebalance = await ModelReturns.create(
 				startingAmount,
 				allocations,
-				blockNumber,
+				[blockNumber], // Wrap in array
 				optionsWithoutRebalance
 			);
 
@@ -215,17 +215,18 @@ describe('Taxes/Appreciation', () => {
 	it('expect smaller inflation adjusted sp500', async () => {
 		const allocations: Allocation[] = [{ key: 'sp500', label: 'S&P 500', value: 100 }];
 		const startingAmount = 100000;
-		// options 
+		// options
+		const defaultOptions = new ForecastOptions(); // Define defaultOptions here
 		const optionsWithInflationAdj = new ForecastOptions();
 		optionsWithInflationAdj.adjustForInflationOn();
 		const blockNumber = 9;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, false, false);
+		const model = await ModelReturns.create(startingAmount, allocations, [blockNumber], defaultOptions); // Wrap in array, use defaultOptions
 
 		const modelInflationAdjusted = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			optionsWithInflationAdj
 		);
 
@@ -237,17 +238,18 @@ describe('Taxes/Appreciation', () => {
 	it('expect smaller inflation adjusted us small caps', async () => {
 		const allocations: Allocation[] = [{ key: 'usSmallCap', label: 'US Small Cap', value: 100 }];
 		const startingAmount = 100000;
-		// options 
+		// options
+		const defaultOptions = new ForecastOptions(); // Define defaultOptions here
 		const optionsWithInflationAdj = new ForecastOptions();
 		optionsWithInflationAdj.adjustForInflationOn();
 		const blockNumber = 9;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, false, false);
+		const model = await ModelReturns.create(startingAmount, allocations, [blockNumber], defaultOptions); // Wrap in array, use defaultOptions
 
 		const modelInflationAdjusted = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			optionsWithInflationAdj
 		);
 
@@ -271,14 +273,14 @@ describe('Taxes/Appreciation', () => {
 		const modelWithoutRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			optionsWithoutRebalance
 		);
 
 		const modelWithRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			optionsWithRebalance
 		);
 
@@ -314,11 +316,11 @@ describe('Tax Scenarios', () => {
 		// This should force a rebalance where gold is sold.
 		const blockNumber = 2;
 
-		const modelWithRebalance = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
+		const modelWithRebalance = await ModelReturns.create(startingAmount, allocations, [blockNumber], optionsWithRebalance); // Wrap in array
 		const modelNoRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			optionsWithoutRebalance
 		);
 
@@ -341,7 +343,7 @@ describe('Tax Scenarios', () => {
 		// Block 5 (1974-1983) has negative returns for SP500 in the first year.
 		const blockNumber = 5;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
+		const model = await ModelReturns.create(startingAmount, allocations, [blockNumber], optionsWithRebalance); // Wrap in array
 		const firstYearTaxes = model.results[0].taxes;
 
 		// With SP500 having a loss, rebalancing will sell treasuries (assuming they gained value, which they did).
@@ -359,7 +361,7 @@ describe('Tax Scenarios', () => {
 		optionsWithRebalance.rebalanceOn();
 		const blockNumber = 9; // High-growth block
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
+		const model = await ModelReturns.create(startingAmount, allocations, [blockNumber], optionsWithRebalance); // Wrap in array
 		const firstYearResult = model.results[0];
 
 		// In block 9, year 1 (1978), SP500 grew by 6.56%. With a $10M start, that's a $656,000 gain.
@@ -385,11 +387,11 @@ describe('Tax Scenarios', () => {
 		const defaultOptions = new ForecastOptions();
 		const blockNumber = 9;
 
-		const model = await ModelReturns.create(startingAmount, allocations, blockNumber, optionsWithRebalance);
+		const model = await ModelReturns.create(startingAmount, allocations, [blockNumber], optionsWithRebalance); // Wrap in array
 		const modelNoRebalance = await ModelReturns.create(
 			startingAmount,
 			allocations,
-			blockNumber,
+			[blockNumber], // Wrap in array
 			defaultOptions
 		);
 

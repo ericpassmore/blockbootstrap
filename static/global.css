@@ -333,6 +333,29 @@ td.negative {
 	background-color: var(--primary-background-color);
 }
 
+.advanced-options .checkbox-container {
+	display: flex;
+	gap: 1.5rem;
+}
+
+.advanced-options .checkbox-item {
+	min-width: 200px;
+	flex: 1;
+	padding: 0 1rem;
+	position: relative;
+}
+
+/* Add subtle vertical lines between the three options except the last one */
+.advanced-options .checkbox-item:not(:last-child)::after {
+	content: "";
+	position: absolute;
+	top: 10%;
+	right: 0;
+	width: 1px;
+	height: 80%;
+	background-color: rgba(0, 0, 0, 0.1); /* subtle vertical line */
+}
+
 /* Reset margins for all children */
 .info-block > * {
   margin: 0;

@@ -4,11 +4,11 @@ import { ForecastOptions } from '$lib/forecastOptions';
 
 interface PercentileResult {
 	value: number;
-	seriesNumber: number;
+	seriesNumbers: number[];
 }
 
 export interface Forecast {
-	blockNumber: number;
+	blockNumbers: number[]; // Changed from blockNumber to blockNumbers
 	results: any[]; // YearlyReturn[]
 	taxes: number;
 	finalValue: number;
@@ -29,11 +29,11 @@ export class ForecastService {
 	public forecasts: Forecast[];
 	public startingAmount: number;
 	public median: number;
-	public medianSeries: number;
+	public medianSeries: number[];
 	public q1: number;
-	public q1Series: number;
+	public q1Series: number[];
 	public q3: number;
-	public q3Series: number;
+	public q3Series: number[];
 	public averageCAGR: number;
 	public finalValueStdDev: number;
 
@@ -41,11 +41,11 @@ export class ForecastService {
 		this.startingAmount = startingAmount;
 
 		this.median = statistics.medianResult.value;
-		this.medianSeries = statistics.medianResult.seriesNumber;
+		this.medianSeries = statistics.medianResult.seriesNumbers;
 		this.q1 = statistics.q1Result.value;
-		this.q1Series = statistics.q1Result.seriesNumber;
+		this.q1Series = statistics.q1Result.seriesNumbers;
 		this.q3 = statistics.q3Result.value;
-		this.q3Series = statistics.q3Result.seriesNumber;
+		this.q3Series = statistics.q3Result.seriesNumbers;
 
 		this.averageCAGR = this.simpleArithmaticMean(forecasts.map((f) => f.cagr));
 		this.finalValueStdDev = this.standardDeviation(forecasts.map((f) => f.finalValue));
@@ -60,9 +60,9 @@ export class ForecastService {
 		options: ForecastOptions
 	): Promise<ForecastService> {
 		const instance = new ForecastService(startingAmount, [], {
-			medianResult: { value: 0, seriesNumber: 0 },
-			q1Result: { value: 0, seriesNumber: 0 },
-			q3Result: { value: 0, seriesNumber: 0 }
+			medianResult: { value: 0, seriesNumbers: [0] },
+			q1Result: { value: 0, seriesNumbers: [0] },
+			q3Result: { value: 0, seriesNumbers: [0] }
 		});
 
 		const allForecasts = await instance.buildAllForecasts(allocations, options);
@@ -78,12 +78,38 @@ export class ForecastService {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
 		const numberOfBlocks = BlockData.getAllData().size;
+		let blockCombinations: number[][] = [];
 
-		for (let i = 1; i <= numberOfBlocks; i++) {
+		if (options.returnWindow === 10) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				blockCombinations.push([i]);
+			}
+		} else if (options.returnWindow === 20) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				for (let j = i + 1; j <= numberOfBlocks; j++) {
+					blockCombinations.push([i, j]);
+				}
+			}
+		} else if (options.returnWindow === 30) {
+			for (let i = 1; i <= numberOfBlocks; i++) {
+				for (let j = i + 1; j <= numberOfBlocks; j++) {
+					for (let k = j + 1; k <= numberOfBlocks; k++) {
+						blockCombinations.push([i, j, k]);
+					}
+				}
+			}
+		}
+		for (const blockNumbers of blockCombinations) {
+			// Check if any block in the combination should be excluded
+			const exclude = blockNumbers.some((blockNum) => this.shouldExcludeBlock(blockNum));
+			if (exclude) {
+				continue; // Skip this combination if any block is incomplete
+			}
+
 			const model = await ModelReturns.create(
 				this.startingAmount,
 				allocations,
-				i,
+				blockNumbers,
 				options
 			);
 			const currentYear = new Date().getFullYear();
@@ -93,7 +119,7 @@ export class ForecastService {
 				taxes += result.taxes;
 			}
 			allForecasts.push({
-				blockNumber: i,
+				blockNumbers: blockNumbers,
 				results: model.results,
 				taxes: taxes,
 				finalValue: model.finalValue,
@@ -101,6 +127,11 @@ export class ForecastService {
 			});
 		}
 		return allForecasts;
+	}
+
+	private arraysEqual(a: number[], b: number[]): boolean {
+		if (a.length !== b.length) return false;
+		return a.every((val, i) => val === b[i]);
 	}
 
 	private calculateStatistics(allForecasts: Forecast[]): StatisticsResult {
@@ -118,7 +149,7 @@ export class ForecastService {
 		const pos = (sortedForecasts.length - 1) * percentile;
 		const index = Math.round(pos);
 		const result = sortedForecasts[index];
-		return { value: result.finalValue, seriesNumber: result.blockNumber };
+		return { value: result.finalValue, seriesNumbers: result.blockNumbers };
 	}
 
 	private simpleArithmaticMean(values: number[]): number {
@@ -134,35 +165,85 @@ export class ForecastService {
 		return Math.sqrt(variance);
 	}
 
-	private reorderForecasts(
-		allForecasts: Forecast[],
-		statistics: ReturnType<typeof this.calculateStatistics>
-	): Forecast[] {
+	/**
+	 * Checks if a given block number contains any market data where ALL specified asset values are 1.
+	 * This indicates incomplete data from the CSV parsing.
+	 * @param blockNumber The block number to check.
+	 * @returns True if the block should be excluded, false otherwise.
+	 */
+	private shouldExcludeBlock(blockNumber: number): boolean {
+		const blockData = BlockData.getSeries(blockNumber);
+		if (!blockData) {
+			return true; // Exclude if block data is not found
+		}
+
+		for (const yearData of blockData) {
+			// Exclude if ALL of the specified assets have a value of 1
+			if (
+				yearData.sp500 === 1 &&
+				yearData.usSmallCap === 1 &&
+				yearData.TBill === 1 &&
+				yearData.treasury10Year === 1 &&
+				yearData.baaCorp === 1 &&
+				yearData.realEstate === 1 &&
+				yearData.gold === 1
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private reorderForecasts(allForecasts: Forecast[], statistics: StatisticsResult): Forecast[] {
 		const specialSeriesNumbers = new Set([
-			statistics.q1Result.seriesNumber,
-			statistics.medianResult.seriesNumber,
-			statistics.q3Result.seriesNumber
+			statistics.q1Result.seriesNumbers,
+			statistics.medianResult.seriesNumbers,
+			statistics.q3Result.seriesNumbers
 		]);
-		const regularForecasts = allForecasts.filter((f) => !specialSeriesNumbers.has(f.blockNumber));
-		const q1Forecast = allForecasts.find((f) => f.blockNumber === statistics.q1Result.seriesNumber);
-		const medianForecast = allForecasts.find(
-			(f) => f.blockNumber === statistics.medianResult.seriesNumber
+		const regularForecasts = allForecasts.filter(
+			(f) => ![...specialSeriesNumbers].some((special) => this.arraysEqual(f.blockNumbers, special))
 		);
-		const q3Forecast = allForecasts.find((f) => f.blockNumber === statistics.q3Result.seriesNumber);
+		const q1Forecast = allForecasts.find((f) =>
+			this.arraysEqual(f.blockNumbers, statistics.q1Result.seriesNumbers)
+		);
+		const medianForecast = allForecasts.find((f) =>
+			this.arraysEqual(f.blockNumbers, statistics.medianResult.seriesNumbers)
+		);
+		const q3Forecast = allForecasts.find((f) =>
+			this.arraysEqual(f.blockNumbers, statistics.q3Result.seriesNumbers)
+		);
 		const appendedSeries = new Set();
 		const firstForecasts: Forecast[] = [];
 
 		if (q1Forecast) {
 			firstForecasts.push(q1Forecast);
-			appendedSeries.add(q1Forecast.blockNumber);
+			appendedSeries.add(q1Forecast.blockNumbers[0]);
 		}
-		if (medianForecast && !appendedSeries.has(medianForecast.blockNumber)) {
+		if (medianForecast && !appendedSeries.has(medianForecast.blockNumbers[0])) {
 			firstForecasts.push(medianForecast);
-			appendedSeries.add(medianForecast.blockNumber);
+			appendedSeries.add(medianForecast.blockNumbers[0]);
 		}
-		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumber)) {
+		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumbers[0])) {
 			firstForecasts.push(q3Forecast);
 		}
-		return [...firstForecasts, ...regularForecasts];
+		let finalRegularForecasts = regularForecasts;
+
+		// Thin forecasts if there are more than 50 regular forecasts
+		if (regularForecasts.length > 50) {
+			const sortedRegularForecasts = [...regularForecasts].sort(
+				(a, b) => a.finalValue - b.finalValue
+			);
+			const interval = Math.floor(sortedRegularForecasts.length / (50 - firstForecasts.length)); // Adjust target count for already included special forecasts
+			finalRegularForecasts = [];
+			for (let i = 0; i < sortedRegularForecasts.length; i += interval) {
+				if (finalRegularForecasts.length < 50 - firstForecasts.length) {
+					finalRegularForecasts.push(sortedRegularForecasts[i]);
+				} else {
+					break;
+				}
+			}
+		}
+
+		return [...firstForecasts, ...finalRegularForecasts];
 	}
 }
