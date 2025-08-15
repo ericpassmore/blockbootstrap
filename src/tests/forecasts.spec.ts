@@ -23,18 +23,18 @@ describe('Forecast Service', () => {
 		expect(forecastService.median).toBeTypeOf('number');
 		expect(forecastService.median).not.toBeNaN();
 
-		expect(forecastService.medianSeries).toBeTypeOf('number');
+		expect(forecastService.medianSeries[0]).toBeTypeOf('number');
 		expect(forecastService.medianSeries).not.toBeNaN();
-		expect(forecastService.medianSeries).toBeGreaterThan(1);
+		expect(forecastService.medianSeries[0]).toBeGreaterThan(1);
 
 		expect(forecastService.q1).toBeTypeOf('number');
 		expect(forecastService.q1).not.toBeNaN();
-		expect(forecastService.q1Series).toBeTypeOf('number');
+		expect(forecastService.q1Series[0]).toBeTypeOf('number');
 		expect(forecastService.q1Series).not.toBeNaN();
 
 		expect(forecastService.q3).toBeTypeOf('number');
 		expect(forecastService.q3).not.toBeNaN();
-		expect(forecastService.q3Series).toBeTypeOf('number');
+		expect(forecastService.q3Series[0]).toBeTypeOf('number');
 		expect(forecastService.q3Series).not.toBeNaN();
 		// expect positive numbers every year
 
@@ -67,18 +67,18 @@ describe('Forecast Service', () => {
 		expect(forecastService.median).toBeTypeOf('number');
 		expect(forecastService.median).not.toBeNaN();
 
-		expect(forecastService.medianSeries).toBeTypeOf('number');
+		expect(forecastService.medianSeries[0]).toBeTypeOf('number');
 		expect(forecastService.medianSeries).not.toBeNaN();
-		expect(forecastService.medianSeries).toBeGreaterThan(1);
+		expect(forecastService.medianSeries[0]).toBeGreaterThan(1);
 
 		expect(forecastService.q1).toBeTypeOf('number');
 		expect(forecastService.q1).not.toBeNaN();
-		expect(forecastService.q1Series).toBeTypeOf('number');
+		expect(forecastService.q1Series[0]).toBeTypeOf('number');
 		expect(forecastService.q1Series).not.toBeNaN();
 
 		expect(forecastService.q3).toBeTypeOf('number');
 		expect(forecastService.q3).not.toBeNaN();
-		expect(forecastService.q3Series).toBeTypeOf('number');
+		expect(forecastService.q3Series[0]).toBeTypeOf('number');
 		expect(forecastService.q3Series).not.toBeNaN();
 		// expect positive numbers every year
 
@@ -186,6 +186,14 @@ describe('Forecast Service', () => {
 		);
 		const cagr30 = forecastService30.averageCAGR;
 		const finalValue30 = forecastService30.median;
+
+		// correct stats
+		expect(forecastService30.median).toBeGreaterThan(forecastService30.q1);
+		expect(forecastService30.median).toBeLessThan(forecastService30.q3);
+		expect(forecastService20.median).toBeGreaterThan(forecastService20.q1);
+		expect(forecastService20.median).toBeLessThan(forecastService20.q3);
+		expect(forecastService10.median).toBeGreaterThan(forecastService10.q1);
+		expect(forecastService10.median).toBeLessThan(forecastService10.q3);
 
 		// Check CAGRs are roughly the same
 		expect(cagr20).toBeCloseTo(cagr10, 0); // within 2 decimal places

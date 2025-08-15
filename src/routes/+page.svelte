@@ -11,11 +11,11 @@
 		startingAmount: number;
 		allocations: Allocation[];
 		median: number;
-		medianSeries: number;
+		medianSeries: number[];
 		q1: number;
-		q1Series: number;
+		q1Series: number[];
 		q3: number;
-		q3Series: number;
+		q3Series: number[];
 		averageCAGR: number;
 		finalValueStdDev: number;
 		error: string;
@@ -35,6 +35,40 @@
 		isLoggedIn = !!localStorage.getItem('token');
 	});
 	let startingAmount: number = form?.startingAmount || 10000;
+
+	// String version of startingAmount for formatted input binding
+	let startingAmountFormatted: string = startingAmount.toLocaleString('en-US');
+
+	// Format number with commas
+	function formatNumberWithCommas(value: number): string {
+		return value.toLocaleString('en-US');
+	}
+
+	// Parse formatted string to number by removing commas
+	function parseNumberFromFormatted(value: string): number {
+		const numericString = value.replace(/,/g, '');
+		const parsed = parseInt(numericString, 10);
+		return isNaN(parsed) ? 0 : parsed;
+	}
+
+	// Handle input event to update startingAmount and formatted string
+	function onStartingAmountInput(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const rawValue = input.value;
+
+		// Remove all non-digit characters except commas
+		const cleanedValue = rawValue.replace(/[^\d,]/g, '');
+
+		// Parse to number
+		const numericValue = parseNumberFromFormatted(cleanedValue);
+
+		// Update numeric value
+		startingAmount = numericValue;
+
+		// Update formatted string with commas
+		startingAmountFormatted = formatNumberWithCommas(numericValue);
+	}
+
 	// Define the asset classes for allocation
 	let allocations = form?.allocations || [
 		{ key: 'sp500', label: 'S&P 500', value: 45 },
@@ -85,24 +119,30 @@
 	let chartInstance: Chart | null = null;
 
 	function selectChartColor(
-		blockNumber: number,
-		medianBlockNum: number,
-		q1BlockNum: number,
-		q3BlockNum: number
+		blockNumber: number[],
+		medianBlockNum: number[],
+		q1BlockNum: number[],
+		q3BlockNum: number[]
 	) {
-		const legendIncomplete = getCSSVar('--legend-incomplete-color');
 		const legendMedian = getCSSVar('--legend-median-color');
 		const legendQuartile = getCSSVar('--legend-quartile-color');
 		const legendComplete = getCSSVar('--legend-complete-color');
 
-		if (blockNumber > 46) {
-			return legendIncomplete;
-		}
-		if (blockNumber === medianBlockNum) {
-			return legendMedian;
-		}
-		if (blockNumber === q1BlockNum || blockNumber === q3BlockNum) {
-			return legendQuartile;
+		// all arrays should have same length
+		if (
+			blockNumber.length === medianBlockNum.length &&
+			blockNumber.length === q1BlockNum.length &&
+			q3BlockNum.length === q3BlockNum.length
+		) {
+			if (blockNumber.every((val, i) => val === medianBlockNum[i])) {
+				return legendMedian;
+			}
+			if (blockNumber.every((val, i) => val === q1BlockNum[i])) {
+				return legendQuartile;
+			}
+			if (blockNumber.every((val, i) => val === q3BlockNum[i])) {
+				return legendQuartile;
+			}
 		}
 		return legendComplete;
 	}
@@ -118,7 +158,7 @@
 				data: [form.startingAmount, ...forecast.results.map((r) => r.endValue)],
 				// series 46 and greater have partial data
 				borderColor: selectChartColor(
-					forecast.blockNumbers[0], // Use the first block number for color selection
+					forecast.blockNumbers, // Use the first block number for color selection
 					form.medianSeries,
 					form.q1Series,
 					form.q3Series
@@ -189,12 +229,13 @@
 		<div class="form-group starting-amount-group">
 			<label for="startingAmount">Starting Investment ($)</label>
 			<input
-				type="number"
+				type="text"
 				id="startingAmount"
-				name="startingAmount"
-				bind:value={startingAmount}
+				value={startingAmountFormatted}
+				on:input={onStartingAmountInput}
 				min="1"
 			/>
+			<input type="hidden" name="startingAmount" value={startingAmount} />
 		</div>
 
 		<h2>Asset Allocation (%)</h2>
@@ -209,6 +250,7 @@
 
 		<!-- Hidden inputs to pass complex data to the server -->
 		<input type="hidden" name="allocations" value={JSON.stringify(allocations)} />
+		<input type="hidden" name="returnWindow" value={returnWindow} />
 
 		<div class="total-summary" class:invalid={isInvalid}>
 			<strong>Total Allocation: {totalAllocation}%</strong>
@@ -242,13 +284,13 @@
 					</div>
 					<div class="checkbox-item">
 						<div class="checkbox-label-row">
-							<label for="returnWindow">Return Window (Years)</label>
+							<label for="returnWindow">Years</label>
 							<div class="radio-group">
 								<input
 									type="radio"
 									id="returnWindow10"
 									name="returnWindow"
-									value="10"
+									value={10}
 									bind:group={returnWindow}
 								/>
 								<label for="returnWindow10">10</label>
@@ -256,7 +298,7 @@
 									type="radio"
 									id="returnWindow20"
 									name="returnWindow"
-									value="20"
+									value={20}
 									bind:group={returnWindow}
 								/>
 								<label for="returnWindow20">20</label>
@@ -264,7 +306,7 @@
 									type="radio"
 									id="returnWindow30"
 									name="returnWindow"
-									value="30"
+									value={30}
 									bind:group={returnWindow}
 								/>
 								<label for="returnWindow30">30</label>
