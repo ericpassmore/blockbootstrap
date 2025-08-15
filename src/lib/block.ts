@@ -30,6 +30,7 @@ export interface MarketData {
 export class BlockData {
 	private static marketDataMap: Map<number, MarketData[]> = new Map();
 	private static initialized = false;
+	private static incompleteBlocks: number[] = [];
 
 	/**
 	 * Initializes the service and loads data from the provided CSV file path.
@@ -64,6 +65,10 @@ export class BlockData {
 				// Replace any '#N/A' value with '0' before splitting into columns
 				const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
 				const seriesKey = this.safeParseInt(values[0]);
+				// mark incomplete
+				if (this.hasIncompleteData(trimmedLine)) {
+					this.incompleteBlocks.push(seriesKey);
+				}
 
 				// could not find historical dividend yield for small cap so made a constant
 				const marketData: MarketData = {
@@ -99,11 +104,35 @@ export class BlockData {
 	}
 
 	/**
+	 * Determins if a block has incomplete data
+	 * @params an array of values for this year
+	 * @returns boolean indicated the block has incomplete data
+	 */
+	private static hasIncompleteData(line: string) {
+		let count = 0;
+		for (const value of line.split(',')) {
+			if (value.trim() === '#N/A') {
+				count++;
+			}
+		}
+		return count >= 8;
+	}
+
+	/**
 	 * Retrieves the entire map of market data.
 	 * @returns A Map where the key is the series number and the value is an array of MarketData.
 	 */
-	public static getAllData(): Map<number, MarketData[]> {
-		return this.marketDataMap;
+	public static getAllData(excludeIncompleteBlocks: boolean = false): Map<number, MarketData[]> {
+		if (!excludeIncompleteBlocks) {
+			return this.marketDataMap;
+		}
+		const filteredMap = new Map<number, MarketData[]>();
+		for (const [key, value] of this.marketDataMap.entries()) {
+			if (!this.incompleteBlocks.includes(key)) {
+				filteredMap.set(key, value);
+			}
+		}
+		return filteredMap;
 	}
 
 	/**
@@ -151,4 +180,12 @@ export class BlockData {
 		const parsed = parseFloat(value.replace('%', ''));
 		return isNaN(parsed) ? 1 : parsed;
 	};
+
+	/**
+	 * Return incomplete blocks
+	 * @returns number[] list of deduped blocks
+	 */
+	public static getIncompleteBlocks(): number[] {
+		return [...new Set(this.incompleteBlocks)];
+	}
 }

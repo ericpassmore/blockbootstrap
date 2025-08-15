@@ -184,7 +184,6 @@ export class ModelReturns {
 		return assetValues;
 	}
 
-
 	private _annualRebalance(
 		yearEndValues: AssetValues,
 		targetAllocations: Allocation[]

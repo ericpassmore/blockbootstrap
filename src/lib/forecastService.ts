@@ -77,7 +77,8 @@ export class ForecastService {
 	): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
-		const numberOfBlocks = BlockData.getAllData().size;
+		const excludeIncompleteBlocks = true;
+		const numberOfBlocks = BlockData.getAllData(excludeIncompleteBlocks).size;
 		let blockCombinations: number[][] = [];
 
 		if (options.returnWindow === 10) {
@@ -100,12 +101,6 @@ export class ForecastService {
 			}
 		}
 		for (const blockNumbers of blockCombinations) {
-			// Check if any block in the combination should be excluded
-			const exclude = blockNumbers.some((blockNum) => this.shouldExcludeBlock(blockNum));
-			if (exclude) {
-				continue; // Skip this combination if any block is incomplete
-			}
-
 			const model = await ModelReturns.create(
 				this.startingAmount,
 				allocations,
@@ -163,35 +158,6 @@ export class ForecastService {
 		const mean = this.simpleArithmaticMean(values);
 		const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
 		return Math.sqrt(variance);
-	}
-
-	/**
-	 * Checks if a given block number contains any market data where ALL specified asset values are 1.
-	 * This indicates incomplete data from the CSV parsing.
-	 * @param blockNumber The block number to check.
-	 * @returns True if the block should be excluded, false otherwise.
-	 */
-	private shouldExcludeBlock(blockNumber: number): boolean {
-		const blockData = BlockData.getSeries(blockNumber);
-		if (!blockData) {
-			return true; // Exclude if block data is not found
-		}
-
-		for (const yearData of blockData) {
-			// Exclude if ALL of the specified assets have a value of 1
-			if (
-				yearData.sp500 === 1 &&
-				yearData.usSmallCap === 1 &&
-				yearData.TBill === 1 &&
-				yearData.treasury10Year === 1 &&
-				yearData.baaCorp === 1 &&
-				yearData.realEstate === 1 &&
-				yearData.gold === 1
-			) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private reorderForecasts(allForecasts: Forecast[], statistics: StatisticsResult): Forecast[] {
