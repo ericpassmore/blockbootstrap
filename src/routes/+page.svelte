@@ -107,6 +107,20 @@
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0
 	});
+	const millionsCurrencyFormatter = new Intl.NumberFormat('en-US', {
+		style: 'currency',
+		currency: 'USD',
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2
+	});
+
+	// Format large currency values in millions if exceeding 10,000,000
+	function formatLargeCurrency(value: number): string {
+		if (value > 10000000) {
+			return `${millionsCurrencyFormatter.format(value / 1000000)}M`;
+		}
+		return currencyFormatter.format(value);
+	}
 
 	// helper to align colors from css
 	function getCSSVar(name: string) {
@@ -325,17 +339,17 @@
 			<h3>Your Results</h3>
 			<p>Here’s a summary of your allocation and projections based on the inputs above:</p>
 			<div class="summary">
-				<p><strong>Starting Amt:</strong> {currencyFormatter.format(form.startingAmount)}</p>
-				<p><strong>Median Est:</strong> {currencyFormatter.format(form.median)}</p>
-				<p><strong>Conservative Est:</strong> {currencyFormatter.format(form.q1)}</p>
-				<p><strong>Optimistic Est:</strong> {currencyFormatter.format(form.q3)}</p>
+				<p><strong>Starting Amt:</strong> {formatLargeCurrency(form.startingAmount)}</p>
+				<p><strong>Median Est:</strong> {formatLargeCurrency(form.median)}</p>
+				<p><strong>Conservative Est:</strong> {formatLargeCurrency(form.q1)}</p>
+				<p><strong>Optimistic Est:</strong> {formatLargeCurrency(form.q3)}</p>
 				<p>
 					<strong>Average Annual Growth Rate:</strong>
 					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
 				</p>
 				<p>
 					<strong>Expected fluctuation in returns:</strong>
-					{currencyFormatter.format(form.finalValueStdDev)}
+					{formatLargeCurrency(form.finalValueStdDev)}
 				</p>
 			</div>
 			<p class="disclaimer">Conservative is 1st Quartile. Optimistic is 3rd Quartile.</p>
