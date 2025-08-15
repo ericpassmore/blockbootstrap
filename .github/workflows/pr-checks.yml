@@ -8,6 +8,13 @@ on:
 jobs:
   build-lint-test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/foo
+      DB_SSL: false
+      VITE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/foo
+      VITE_DB_SSL: false
+      BREVO_API_KEY: foobar
+      VITE_BREVO_API_KEY: foobar
 
     steps:
       - name: Checkout repository
