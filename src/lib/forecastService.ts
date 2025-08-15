@@ -88,7 +88,7 @@ export class ForecastService {
 		} else if (options.returnWindow === 20) {
 			for (let i = 1; i <= numberOfBlocks; i++) {
 				for (let j = i + 1; j <= numberOfBlocks; j++) {
-					if (Math.abs(i - j) >= 10) {
+					if (i !== j) {
 						blockCombinations.push([i, j]);
 					}
 				}
@@ -97,7 +97,7 @@ export class ForecastService {
 			for (let i = 1; i <= numberOfBlocks; i++) {
 				for (let j = i + 1; j <= numberOfBlocks; j++) {
 					for (let k = j + 1; k <= numberOfBlocks; k++) {
-						if (Math.abs(i - j) >= 10 && Math.abs(j - k) >= 10) {
+						if (i !== j && i !== k && j !== k) {
 							blockCombinations.push([i, j, k]);
 						}
 					}
