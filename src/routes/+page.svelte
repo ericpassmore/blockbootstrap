@@ -26,6 +26,8 @@
 	import { type ChartOptions, Chart } from 'chart.js/auto'; // Simplified import for vanilla Chart.js
 
 	export let form: FormData;
+	// need to set false otherwise login break and page rendering stops
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let isLoggedIn = false;
 	let rebalance = form?.options?.[0] || false;
 	let inflationAdjusted = form?.options?.[1] || false;
