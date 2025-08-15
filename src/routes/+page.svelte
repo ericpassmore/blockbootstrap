@@ -26,7 +26,6 @@
 	import { type ChartOptions, Chart } from 'chart.js/auto'; // Simplified import for vanilla Chart.js
 
 	export let form: FormData;
-	let isLoggedIn = false;
 	let rebalance = form?.options?.[0] || false;
 	let inflationAdjusted = form?.options?.[1] || false;
 	let returnWindow = form?.options?.[2] || 10;

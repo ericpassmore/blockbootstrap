@@ -1,6 +1,7 @@
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { CodeGenerator } from './codeGenerator';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	SendSmtpEmail,
 	TransactionalEmailsApi,
@@ -12,9 +13,9 @@ export class User {
 	private email: string;
 	private code: number;
 	private token: string;
-	private db: any;
+	private db: NodePgDatabase<Record<string, never>>;
 
-	constructor(email: string, db: any) {
+	constructor(email: string, db: NodePgDatabase<Record<string, never>>) {
 		this.email = email;
 		this.code = CodeGenerator.getCode(); // Generate a 6-digit code
 		this.token = CodeGenerator.getToken(); // Generate a token
@@ -88,7 +89,7 @@ export class User {
 	 * Sends a verification email to the user using Sendinblue API.
 	 * @param apiKey The API key for Sendinblue.
 	 */
-	async sendVerificationEmail(apiKey: string): Promise<void> {
+	async sendVerificationEmail(): Promise<void> {
 		const defaultClient = new TransactionalEmailsApi();
 		defaultClient.setApiKey(TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY ?? '');
 
@@ -98,12 +99,8 @@ export class User {
 		sendSmtpEmail.templateId = 1;
 		sendSmtpEmail.params = { CODE: this.code.toString() };
 
-		try {
-			const data = await defaultClient.sendTransacEmail(sendSmtpEmail);
-			//console.log('API called successfully. Returned data: ' + JSON.stringify(data));
-		} catch (error) {
-			//console.error('Error sending verification email:', JSON.stringify(error));
-			throw error;
-		}
+		// returns const data
+		await defaultClient.sendTransacEmail(sendSmtpEmail);
+		//console.log('API called successfully. Returned data: ' + JSON.stringify(data));
 	}
 }

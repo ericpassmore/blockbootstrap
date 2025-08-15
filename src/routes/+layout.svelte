@@ -9,6 +9,7 @@
 	let message: string = $state('');
 
 	// Track login state
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let isLoggedIn = $state(false);
 
 	// Check localStorage for token when component loads

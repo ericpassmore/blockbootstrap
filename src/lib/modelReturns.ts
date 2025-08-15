@@ -74,7 +74,10 @@ export class ModelReturns {
 				continue;
 			}
 
-			let assetValues: AssetValues = this._initializeAssetValues(allocations, currentPortfolioValue);
+			let assetValues: AssetValues = this._initializeAssetValues(
+				allocations,
+				currentPortfolioValue
+			);
 
 			for (const yearData of block) {
 				const startOfYearValue = currentPortfolioValue;
@@ -110,12 +113,10 @@ export class ModelReturns {
 							);
 							break;
 						case 'sp500':
-							const dividendYield = yearData.sp500DividendYield || 0;
-							dividendIncome += assetStartValue * (dividendYield / 100);
+							dividendIncome += assetStartValue * ((yearData.sp500DividendYield || 0) / 100);
 							break;
 						case 'usSmallCap':
-							const smallCapDividendYield = yearData.usSmallCapDividendYield || 0;
-							dividendIncome += assetStartValue * (smallCapDividendYield / 100);
+							dividendIncome += assetStartValue * ((yearData.usSmallCapDividendYield || 0) / 100);
 							break;
 					}
 
@@ -174,7 +175,10 @@ export class ModelReturns {
 		return new ModelReturns(startingAmount, allocations, blockNumbers, options);
 	}
 
-	private _initializeAssetValues(allocations: Allocation[], currentPortfolioValue: number): AssetValues {
+	private _initializeAssetValues(
+		allocations: Allocation[],
+		currentPortfolioValue: number
+	): AssetValues {
 		const assetValues: AssetValues = {};
 		for (const asset of allocations) {
 			const startValue = (currentPortfolioValue * asset.value) / 100;
