@@ -102,13 +102,13 @@ describe('Value Market Data', () => {
 		const excludedId: number[] = BlockData.getIncompleteBlocks();
 		expect(excludedId.length).toBeGreaterThan(0);
 		// should not include these later blocks
-		for (const id of [47,48,49,50]) {
+		for (const id of [47, 48, 49, 50]) {
 			expect(excludedId).toContain(id);
 		}
-		for (const id of [1,5,7,9,11,17,35,28,29,30]) {
+		for (const id of [1, 5, 7, 9, 11, 17, 35, 28, 29, 30]) {
 			expect(excludedId).not.toContain(id);
 		}
-	})
+	});
 });
 
 describe('Asset Returns', () => {

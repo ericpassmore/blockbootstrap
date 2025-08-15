@@ -3,7 +3,6 @@ import { fail } from '@sveltejs/kit';
 import { ForecastService } from '$lib/forecastService';
 import { ForecastOptions } from '$lib/forecastOptions';
 import type { Actions } from './$types';
-import { BREVO_API_KEY } from '$env/static/private';
 import { db } from '$lib/server/db'; // your Drizzle DB instance
 import { User } from '$lib/user'; // adjust path as needed
 
@@ -28,7 +27,7 @@ export const actions: Actions = {
 			// Create user (constructor already sets code)
 			await user.create();
 		}
-		await user.sendVerificationEmail(BREVO_API_KEY);
+		await user.sendVerificationEmail();
 
 		return { success: true };
 	},

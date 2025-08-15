@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { User } from '$lib/user';
 
 describe('User Management (DI)', () => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let mockDb: any;
 
 	beforeEach(() => {

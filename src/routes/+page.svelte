@@ -26,6 +26,8 @@
 	import { type ChartOptions, Chart } from 'chart.js/auto'; // Simplified import for vanilla Chart.js
 
 	export let form: FormData;
+	// need to set false otherwise login break and page rendering stops
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let isLoggedIn = false;
 	let rebalance = form?.options?.[0] || false;
 	let inflationAdjusted = form?.options?.[1] || false;
@@ -163,10 +165,12 @@
 
 	// This reactive block creates, updates, or destroys the chart
 	// based on the availability of form results.
-	$: if (form?.success && canvasElement) {
+	$: if (form?.success && canvasElement && form.forecasts?.length > 0) {
+		const firstForecast = form.forecasts[0];
+
 		const chartData = {
 			// Use labels from the first forecast, assuming they are all the same length
-			labels: ['Start', ...form.forecasts[0].results.map((r) => r.year)],
+			labels: ['Start', ...firstForecast.results.map((r) => r.year)],
 			datasets: form.forecasts.map((forecast) => ({
 				label: `Blocks ${forecast.blockNumbers.join(', ')}`,
 				data: [form.startingAmount, ...forecast.results.map((r) => r.endValue)],
@@ -345,7 +349,8 @@
 				<p><strong>Optimistic Est:</strong> {formatLargeCurrency(form.q3)}</p>
 				<p>
 					<strong>Average Annual Growth Rate:</strong>
-					{form.averageCAGR.toFixed(2)}% <em>across all scenarios</em>
+					{form?.averageCAGR != null ? form.averageCAGR.toFixed(2) : '0.00'}%
+					<em>across all scenarios</em>
 				</p>
 				<p>
 					<strong>Expected fluctuation in returns:</strong>

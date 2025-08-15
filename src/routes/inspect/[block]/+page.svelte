@@ -7,7 +7,7 @@
 <h1>Inspect Block Data</h1>
 
 {#if data.block?.length > 0}
-	{#each data.block as item}
+	{#each data.block as item (data.blockNumber + '_' + item.year)}
 		<div class="data-block">
 			<h2>Year: {item.year + data.blockNumber + 1969 - 1}</h2>
 			<ul>

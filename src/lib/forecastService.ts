@@ -1,5 +1,5 @@
 import { BlockData } from '$lib/block';
-import { ModelReturns, type Allocation } from '$lib/modelReturns';
+import { ModelReturns, type Allocation, type AnnualReturn } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
 
 interface PercentileResult {
@@ -9,7 +9,7 @@ interface PercentileResult {
 
 export interface Forecast {
 	blockNumbers: number[]; // Changed from blockNumber to blockNumbers
-	results: any[]; // YearlyReturn[]
+	results: AnnualReturn[]; // YearlyReturn[]
 	taxes: number;
 	finalValue: number;
 	cagr: number;
@@ -79,7 +79,7 @@ export class ForecastService {
 		await BlockData.init();
 		const excludeIncompleteBlocks = true;
 		const numberOfBlocks = BlockData.getAllData(excludeIncompleteBlocks).size;
-		let blockCombinations: number[][] = [];
+		const blockCombinations: number[][] = [];
 
 		if (options.returnWindow === 10) {
 			for (let i = 1; i <= numberOfBlocks; i++) {
