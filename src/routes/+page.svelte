@@ -340,7 +340,7 @@
 			<p>Here’s a summary of your allocation and projections based on the inputs above:</p>
 			<div class="summary">
 				<p><strong>Starting Amt:</strong> {formatLargeCurrency(form.startingAmount)}</p>
-				<p><strong>Median Est:</strong> {formatLargeCurrency(form.median)}</p>
+				<p><strong>Likley Est:</strong> {formatLargeCurrency(form.median)}</p>
 				<p><strong>Conservative Est:</strong> {formatLargeCurrency(form.q1)}</p>
 				<p><strong>Optimistic Est:</strong> {formatLargeCurrency(form.q3)}</p>
 				<p>
@@ -352,7 +352,9 @@
 					{formatLargeCurrency(form.finalValueStdDev)}
 				</p>
 			</div>
-			<p class="disclaimer">Conservative is 1st Quartile. Optimistic is 3rd Quartile.</p>
+			<p class="disclaimer">
+				Likely is Median. Conservative is 1st Quartile. Optimistic is 3rd Quartile.
+			</p>
 			<div class="chart-container">
 				<h3>Portfolio Growth Over Time</h3>
 				<div id="customLegend">
@@ -385,15 +387,62 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each form.forecasts as blockResult (blockResult.blockNumbers.join('-'))}
-						<tr>
-							<td>{blockResult.blockNumbers.join(', ')}</td>
-							<td>{currencyFormatter.format(blockResult.finalValue)}</td>
-							<td>{currencyFormatter.format(blockResult.taxes)}</td>
-							<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
-								{blockResult.cagr.toFixed(2)}%
-							</td>
-						</tr>
+					{#each form.forecasts as blockResult, index (blockResult.blockNumbers.join('-'))}
+						{#if index === 0}
+							<tr class="q1-row">
+								<td>
+									{blockResult.blockNumbers.join(', ')}
+									<span class="label-tooltip" title="Conservative estimate"
+										><span class="material-symbols-outlined">info</span>
+										<small>conservative estimate</small></span
+									>
+								</td>
+								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
+								<td>{currencyFormatter.format(blockResult.taxes)}</td>
+								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
+									{blockResult.cagr.toFixed(2)}%
+								</td>
+							</tr>
+						{:else if index === 1}
+							<tr class="median-row">
+								<td>
+									{blockResult.blockNumbers.join(', ')}
+									<span class="label-tooltip" title="Most likely & median"
+										><span class="material-symbols-outlined">info</span>
+										<small>most likely & median</small></span
+									>
+								</td>
+								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
+								<td>{currencyFormatter.format(blockResult.taxes)}</td>
+								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
+									{blockResult.cagr.toFixed(2)}%
+								</td>
+							</tr>
+						{:else if index === 2}
+							<tr class="q3-row">
+								<td>
+									{blockResult.blockNumbers.join(', ')}
+									<span class="label-tooltip" title="Optimistic estimate"
+										><span class="material-symbols-outlined">info</span>
+										<small>optimistic estimate</small></span
+									>
+								</td>
+								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
+								<td>{currencyFormatter.format(blockResult.taxes)}</td>
+								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
+									{blockResult.cagr.toFixed(2)}%
+								</td>
+							</tr>
+						{:else}
+							<tr>
+								<td>{blockResult.blockNumbers.join(', ')}</td>
+								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
+								<td>{currencyFormatter.format(blockResult.taxes)}</td>
+								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
+									{blockResult.cagr.toFixed(2)}%
+								</td>
+							</tr>
+						{/if}
 					{/each}
 				</tbody>
 			</table>
