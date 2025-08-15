@@ -39,4 +39,27 @@
 			on survey feedback.
 		</p>
 	</section>
+
+	<section class="info-block">
+		<h2>Site Analytics</h2>
+		<p>
+			We use a privacy-friendly analytics service, GoatCounter, to monitor usage of our website.
+			This helps us ensure the site has sufficient capacity and improve performance.
+		</p>
+		<p>
+			<strong>What is collected:</strong> Only anonymous, aggregate information such as pageviews, referrers,
+			and device/browser type.
+		</p>
+		<p>
+			<strong>What is not collected:</strong> No personal information, IP addresses in identifiable form,
+			or data that could identify you individually.
+		</p>
+		<p>
+			<strong>Cookies:</strong> We do not use cookies for analytics purposes.
+		</p>
+		<p>
+			The data collected is used to understand site usage and improve the performance and
+			reliability of our services.
+		</p>
+	</section>
 </div>
