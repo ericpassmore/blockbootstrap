@@ -6,8 +6,8 @@ import { DATABASE_URL } from '$env/static/private';
 
 // Create connection pool using DATABASE_URL
 const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
+	connectionString: DATABASE_URL,
+	ssl: DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 
 // Initialize Drizzle with the pool

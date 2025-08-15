@@ -1,6 +1,7 @@
 :root {
     --primary-background-color: white;
     --primary-foreground-color: black;
+    --dark-primary-foreground-color: #f9f9f9;
     --primary-header-color: #f2f2f2;
     --primary-highligh-color: #f9f9f9;
     --secondary-background-color: #343a40;
@@ -8,12 +9,14 @@
     --secondary-highligh-color: #ced4da;
     --disabled-color: #ccc;
     --error-foreground-color: #d9534f;
+    --dark-error-foreground-color: #d9534f;
     --error-background-color: #f2dede;
     --action-color: #337ab7;
     --action-hover-color: #286090;
     --action-cancel-color: #6c757d;
     --action-cancel-hover-color: #5a6268;
     --success-foreground-color: #28a745;
+    --dark-success-foreground-color: #6ADF78;
     --success-background-color: #eaf6ec;
     --warning-background-color: #fff9db;
     --warning-foreground-color: #8a6d3b;
@@ -22,6 +25,7 @@
     --legend-incomplete-color: #f5c77e;
     --legend-quartile-color: #337ab7;
     --legend-median-color: #000;
+    --legend-median-color-light: #222;
     --shadow-color-dark: rgba(0, 0, 0, 0.5);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
 }
@@ -448,4 +452,70 @@ h1 {
 	font-size: 0.8rem;
 	font-style: italic;
 	color: var(--action-cancel-color);
+}
+
+/* Tooltip style for info icon and small label */
+.label-tooltip {
+    display: inline-flex;
+    align-items: flex-start;
+    cursor: help;
+    position: relative;
+}
+
+.label-tooltip .material-symbols-outlined {
+    font-variation-settings:
+        'opsz' 20,
+        'wght' 400;
+    font-size: 0.9rem;
+    vertical-align: super;
+    margin-left: 0.15rem;
+}
+
+.label-tooltip small {
+    display: none;
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--legend-median-color-light);
+    color: var(--dark-primary-foreground-color);
+    padding: 0.3em 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.label-tooltip:hover small {
+    display: block;
+}
+
+/* Background colors for q1, median, q3 rows with lighter hues */
+.q1-row {
+    color: var(--dark-primary-foreground-color);
+    background-color: var(--legend-quartile-color);
+}
+
+.median-row {
+    color: var(--dark-primary-foreground-color);
+    background-color: var(--legend-median-color-light);
+}
+
+.median-row .negative,
+.q1-row .negative,
+.q3-row .negative {
+    font-weight: 600;
+    color: var(--dark-error-foreground-color);
+}
+
+.median-row .positive,
+.q1-row .positive,
+.q3-row .positive {
+    font-weight: 600;
+    color: var(--dark-success-foreground-color);
+}
+
+.q3-row {
+    color: var(--dark-primary-foreground-color);
+    background-color: var(--legend-quartile-color);
 }
