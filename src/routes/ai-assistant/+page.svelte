@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { onMount } from 'svelte';
 
 	let inputValue: string = $state('');
 	let textareaElement: HTMLTextAreaElement;
