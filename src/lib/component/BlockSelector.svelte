@@ -1,8 +1,10 @@
 <script lang="ts">
-	let selectedBlock: number = 1;
+	type Props = {
+		selectedBlock: number;
+	};
+	let { selectedBlock = $bindable() }: Props = $props();
 </script>
 
-<h1>Inspect a Block</h1>
 <p>Select a 10-year historical data block to inspect its annual returns.</p>
 
 <div class="inspect-block">
@@ -12,5 +14,4 @@
 			<option value={n}>{n}</option>
 		{/each}
 	</select>
-	<a href="/inspect/{selectedBlock}" class="button-link">Inspect Block {selectedBlock}</a>
 </div>

@@ -58,7 +58,7 @@
 		<img src="/logo_b_halo.svg" alt="BlockBootstrap Logo" />
 		Home
 	</a>
-	<a href="/tools">Tools</a>
+	<a href="/inspect/1">Inspect Block</a>
 	<a href="/methodology">Methodology</a>
 	<a href="/privacy">Privacy</a>
 	<button
