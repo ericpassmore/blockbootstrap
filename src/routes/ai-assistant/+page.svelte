@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { onMount } from 'svelte';
 
 	let inputValue: string = $state('');
 	let textareaElement: HTMLTextAreaElement;
+	let apiResponse: string[] = $state([]);
 
 	async function adjustHeight() {
 		if (textareaElement) {
@@ -20,9 +22,23 @@
 		}
 	}
 
-	function handleSubmit() {
-		// Placeholder for the function to call on Enter
-		console.log('Enter pressed, submitting:', inputValue);
+	async function handleSubmit() {
+		if (!inputValue.trim()) return;
+
+		try {
+			const res = await fetch('/api/agent/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ query: inputValue })
+			});
+
+			const text = await res.text(); // since server returns plain text
+			apiResponse.push(text);
+		} catch (err) {
+			console.error('Error calling API:', err);
+		}
 		// Clear the textarea and reset height
 		inputValue = '';
 		adjustHeight();
@@ -32,6 +48,14 @@
 </script>
 
 <h1>AI Assitant</h1>
+
+{#if apiResponse.length > 0}
+	<div class="response-container">
+		{#each apiResponse as response}
+			<div class="info-block">{response}</div>
+		{/each}
+	</div>
+{/if}
 
 <textarea
 	class="expanding-textarea"
@@ -56,5 +80,20 @@
 		resize: none;
 		overflow: hidden;
 		box-sizing: border-box;
+	}
+
+	.response-container {
+		display: block;
+		margin-bottom: 1rem;
+	}
+
+	.info-block {
+		background-color: var(--secondary-background-color);
+		color: var(--secondary-foreground-color);
+		padding: 1rem;
+		border-radius: 8px;
+		white-space: pre-wrap;
+		font-family: inherit;
+		font-size: 1rem;
 	}
 </style>
