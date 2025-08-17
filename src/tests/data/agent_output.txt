@@ -1,0 +1,56 @@
+- **S&P 500 Index** (large-cap US stocks)
+- **US Small Cap Stocks**
+- **10-Year Treasuries**
+- **3-Month Treasury Bills**
+- **BAA Corporate Bond**
+- **Real Estate**
+- **Gold**
+- **Bitcoin**
+
+### **Three-Asset Diversified Portfolio**
+
+To achieve diversification, you should select assets that:
+
+- Have historically low to moderate correlations with one another (reduce risk/cyclical swings).
+- Represent different sources of return (e.g., stocks, bonds, real assets).
+
+#### **Recommended Asset Types**
+1. **Equities (Growth)**
+   - **S&P 500 Index** or **US Small Cap Stocks**
+   - (Contributes growth; you could use either or a blend.)
+
+2. **Bonds (Stability/Income)**
+   - **10-Year Treasuries** or **BAA Corporate Bond**
+   - (Adds stability, income, and historically negative/low correlation with stocks.)
+
+3. **Real Assets or Alternative Assets (Inflation Hedge/Diversifier)**
+   - **Real Estate**, **Gold**, or **Bitcoin**
+   - (Adds real asset exposure and/or inflation protection.)
+
+#### **Sample Diversified Trio**
+
+- **S&P 500 Index**
+- **10-Year Treasuries**
+- **Gold**
+
+**Why these three?**
+- S&P 500: Stock exposure (growth engine)
+- Treasuries: Bond exposure (risk reduction/income)
+- Gold: Inflation hedge, non-correlated with stocks and bonds
+
+You could also use:
+- **US Small Cap Stocks** instead of S&P 500 for more "risk/growth"
+- **BAA Corporate Bond** for higher yield but more risk
+- **Real Estate** as the alternative asset (instead of gold)
+- **Bitcoin** if you have high risk tolerance and want exposure to a very different asset class
+
+---
+
+**In summary:**  
+A classic diversified 3-asset portfolio from your list would include:
+- One equity (S&P 500 or US Small Cap)
+- One bond (10-Year Treasuries or BAA Corporate)
+- One real/alt asset (Gold, Real Estate, or Bitcoin)
+
+If you let me know your risk tolerance or investment goal, I can help fine-tune this mix!
+Let’s answer each question one at a time! (Let me know if you want output in tables or charts.)
