@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GET } from '../../src/routes/api/block/[blockNumber]/+server';
-import blockResponse from './data/block_response.json';
-import * as blockModule from '../../src/lib/block';
+import { GET } from '../../routes/api/block/[blockNumber]/+server';
+import blockResponse from '../data/block_response.json';
+import * as blockModule from '../../lib/block';
 
 describe('GET /api/block/[blockNumber]', () => {
 	const mockBlockNumber = 1;

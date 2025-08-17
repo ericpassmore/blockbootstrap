@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { POST } from '../../src/routes/api/agent/+server';
+import { POST } from '../../routes/api/agent/+server';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -23,7 +23,7 @@ describe('POST /api/agent', () => {
 
 	beforeEach(async () => {
 		// Read the mock data from file
-		const filePath = path.resolve(__dirname, 'data/agent_output.txt');
+		const filePath = path.resolve(__dirname, '../data/agent_output.txt');
 		mockData = await fs.readFile(filePath, 'utf-8');
 
 		// Setup the mock for Responses.create to return the mock data
