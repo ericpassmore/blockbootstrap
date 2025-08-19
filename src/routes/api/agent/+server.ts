@@ -1,27 +1,28 @@
+import { ENVIRONMENT } from '$env/static/private';
 import type { RequestHandler } from '@sveltejs/kit';
-import { Responses } from 'blockbootstrapagent';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let ResponsesClass: any;
 
 export const POST: RequestHandler = async ({ request }) => {
 	// Parse JSON body
 	const { query } = (await request.json()) as { query: string };
 
-	// Mock response when ENVIRONMENT=TEST
-	if (process.env.ENVIRONMENT === 'TEST') {
-		const mockFilePath = resolve('src/tests/data/agent_output.txt');
-		const mockReply = readFileSync(mockFilePath, 'utf-8');
-		return new Response(mockReply, {
-			headers: { 'Content-Type': 'text/plain' }
-		});
+	if (ENVIRONMENT === 'TEST' || ENVIRONMENT === 'DEV') {
+		// You could check/validate query here if needed
+		console.log('Received query:', query);
+		console.log('Using mock Responses class');
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		ResponsesClass = (await import('../../../tests/mocks/responses')).Responses as any;
+	} else {
+		ResponsesClass = (await import('blockbootstrapagent')).Responses;
 	}
+	const responses = new ResponsesClass();
 
-	// You could check/validate query here if needed
-	console.log('Received query:', query);
-	const responses = new Responses();
+	// Unified create call for both mock and original Responses
 	const reply = await responses.create('wealth-manager', query);
 
-	// Respond with plain text
+	// Otherwise, create returns string, so wrap in Response
 	return new Response(reply, {
 		headers: { 'Content-Type': 'text/plain' }
 	});

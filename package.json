@@ -4,16 +4,17 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev --config vite.base.config.ts",
-		"build": "vite build --config vite.base.config.ts",
-		"preview": "vite preview --config vite.base.config.ts",
+		"dev": "cross-env ENVIRONMENT=DEV vite dev --config vite.base.config.ts",
+		"build": "cross-env ENVIRONMENT=PROD vite build --config vite.base.config.ts",
+		"preview": "cross-env ENVIRONMENT=DEV vite preview --config vite.base.config.ts",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"test:unit": "vitest run tests/{api,db,unit}",
-		"test:e2e": "npx vitest run tests/e2e"
+		"test:unit": "npx cross-env ENVIRONMENT=TEST vitest run tests/{api,db,unit}",
+		"test:e2e": "npx cross-env ENVIRONMENT=TEST vitest run tests/e2e",
+		"test:all": "npx cross-env ENVIRONMENT=TEST vitest run tests"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -24,6 +25,7 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@types/node": "^24.0.12",
 		"@vitest/browser": "^3.2.3",
+		"cross-env": "^10.0.0",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",

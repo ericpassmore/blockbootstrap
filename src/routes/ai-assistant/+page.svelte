@@ -50,6 +50,7 @@
 
 {#if apiResponse.length > 0}
 	<div class="response-container">
+		<!-- eslint-disable-next-line svelte/require-each-key -->
 		{#each apiResponse as response}
 			<div class="info-block">{response}</div>
 		{/each}
