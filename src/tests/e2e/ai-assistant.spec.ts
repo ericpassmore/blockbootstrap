@@ -33,7 +33,10 @@ test('ai-assistant input and info-block height test', async () => {
 	expect(textareaVisible).toBe(true);
 
 	// Check div.info-block for the response and its height
-	const infoBlockSelector = 'div.info-block';
+	const infoBlockSelector = 'div.response-block';
+	// Chunked responses wait 400ms before fetching otherwise too small
+	await new Promise((resolve) => setTimeout(resolve, 400));
+	// get the element
 	await page.waitForSelector(infoBlockSelector, { visible: true });
 
 	const infoBlockHeight = await page.$eval(infoBlockSelector, (el) => el.clientHeight);

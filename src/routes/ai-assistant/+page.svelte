@@ -87,7 +87,8 @@
 	<div class="response-container">
 		<!-- eslint-disable-next-line svelte/require-each-key -->
 		{#each apiResponse as response}
-			<!-- render HTML safely -->
+			<!-- been purified by DOMPurify -->
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 			<div class="response-block">{@html response}</div>
 		{/each}
 	</div>
