@@ -18,12 +18,11 @@ export const POST: RequestHandler = async ({ request }) => {
 		ResponsesClass = (await import('blockbootstrapagent')).Responses;
 	}
 	const responses = new ResponsesClass();
+	const stream = await responses.create('wealth-manager', query);
 
-	// Unified create call for both mock and original Responses
-	const reply = await responses.create('wealth-manager', query);
-
-	// Otherwise, create returns string, so wrap in Response
-	return new Response(reply, {
-		headers: { 'Content-Type': 'text/plain' }
+	return new Response(stream, {
+		headers: {
+			'Content-Type': 'text/plain'
+		}
 	});
 };
