@@ -53,7 +53,6 @@
 				if (done) break;
 				partial += decoder.decode(value, { stream: true });
 				html_partial = DOMPurify.sanitize(await marked(partial));
-				apiResponse[apiResponse.length - 1] = html_partial;
 				const now = performance.now();
 
 				if (now - lastUpdate > UPDATE_INTERVAL) {
