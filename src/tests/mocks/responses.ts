@@ -18,8 +18,23 @@ export class Responses {
 	}
 	async sendStringAsStream(content: string): Promise<ReadableStream> {
 		return new ReadableStream({
-			start(controller) {
-				controller.enqueue(new TextEncoder().encode(content)); // Enqueue the string as a Uint8Array
+			async start(controller) {
+				const encoder = new TextEncoder();
+
+				// split into "first chunk" + "rest"
+				const firstChunk = content.slice(0, 50); // or 1 token/word if you prefer
+				const rest = content.slice(50);
+
+				// send first chunk immediately
+				controller.enqueue(encoder.encode(firstChunk));
+
+				// wait 250ms before sending the rest
+				await new Promise((resolve) => setTimeout(resolve, 250));
+
+				if (rest.length > 0) {
+					controller.enqueue(encoder.encode(rest));
+				}
+
 				controller.close(); // Signal the end of the stream
 			}
 		});

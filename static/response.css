@@ -1,0 +1,80 @@
+.expanding-textarea {
+    width: 60ch;
+    border-radius: 8px;
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-foreground-color);
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.5rem;
+    border: none;
+    resize: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    text-rendering: optimizeLegibility;
+}
+
+.response-container {
+    display: block;
+    margin-bottom: 1rem;
+    text-rendering: optimizeLegibility;
+}
+
+.response-block {
+    background-color: var(--primary-highligh-color);
+    color: var(--primary-foreground-color);
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 0.8rem;
+    border: 1px solid var(--primary-separator-color);
+}
+
+/* Reset margins for all children */
+.response-block > * {
+  margin: 0;
+}
+
+/* Heading inside the flex container spans full width */
+.response-block h2 {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--primary-separator-color);
+  padding-bottom: 0.5rem;
+}
+
+.response-block h3 {
+  width: 100%;
+  color: var(--primary-foreground-color);
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--primary-separator-color);
+  padding-bottom: 0.5rem;
+}
+.response-block p {
+    margin: 0;
+    line-height: 1.2rem;
+}
+.response-block ul li {
+    line-height: .25rem;
+}
+.response-block ol {
+    margin-top:0;
+}
+.response-block ol li {
+    line-height: .5rem;
+}
+
+
+/* Image now sits in flex flow, no floats needed */
+.response-block img {
+  max-width: 300px;
+  flex-shrink: 0; /* prevents shrinking below max-width */
+  border-radius: 4px;
+}

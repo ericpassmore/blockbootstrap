@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { marked } from 'marked';
+	import DOMPurify from 'dompurify';
 
 	let inputValue: string = $state('');
 	let textareaElement: HTMLTextAreaElement;
@@ -33,26 +35,60 @@
 				body: JSON.stringify({ query: inputValue })
 			});
 
-			const text = await res.text(); // since server returns plain text
-			apiResponse.push(text);
+			const reader = res.body?.getReader();
+			if (!reader) return;
+
+			const decoder = new TextDecoder();
+			let partial = '';
+			let html_partial = '';
+
+			// start a new response slot
+			apiResponse = [...apiResponse, ''];
+
+			let lastUpdate = performance.now();
+			const UPDATE_INTERVAL = 150; // ms — tweak this
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				partial += decoder.decode(value, { stream: true });
+				html_partial = DOMPurify.sanitize(await marked(partial));
+				apiResponse[apiResponse.length - 1] = html_partial;
+				const now = performance.now();
+
+				if (now - lastUpdate > UPDATE_INTERVAL) {
+					apiResponse[apiResponse.length - 1] = html_partial;
+					await tick(); // let Svelte re-render
+					lastUpdate = now;
+				}
+			}
+
+			// flush at the end, update UI with final text
+			partial += decoder.decode();
+			html_partial = DOMPurify.sanitize(await marked(partial));
+			apiResponse[apiResponse.length - 1] = html_partial;
+			await tick();
 		} catch (err) {
 			console.error('Error calling API:', err);
+		} finally {
+			await tick(); // let Svelte re-render
+			// Clear the textarea and reset height
+			inputValue = '';
+			adjustHeight();
 		}
-		// Clear the textarea and reset height
-		inputValue = '';
-		adjustHeight();
 	}
 
 	$effect(() => adjustHeight());
 </script>
 
-<h1>AI Assitant</h1>
+<h1>AI Assistant</h1>
 
 {#if apiResponse.length > 0}
 	<div class="response-container">
 		<!-- eslint-disable-next-line svelte/require-each-key -->
 		{#each apiResponse as response}
-			<div class="info-block">{response}</div>
+			<!-- render HTML safely -->
+			<div class="response-block">{@html response}</div>
 		{/each}
 	</div>
 {/if}
@@ -66,34 +102,3 @@
 	oninput={adjustHeight}
 	onkeydown={onKeyDown}
 ></textarea>
-
-<style>
-	.expanding-textarea {
-		width: 60ch;
-		border-radius: 8px;
-		background-color: var(--secondary-background-color);
-		color: var(--secondary-foreground-color);
-		font-family: inherit;
-		font-size: 1rem;
-		padding: 0.5rem;
-		border: none;
-		resize: none;
-		overflow: hidden;
-		box-sizing: border-box;
-	}
-
-	.response-container {
-		display: block;
-		margin-bottom: 1rem;
-	}
-
-	.info-block {
-		background-color: var(--secondary-background-color);
-		color: var(--secondary-foreground-color);
-		padding: 1rem;
-		border-radius: 8px;
-		white-space: pre-wrap;
-		font-family: inherit;
-		font-size: 1rem;
-	}
-</style>

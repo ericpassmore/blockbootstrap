@@ -1,3 +1,7 @@
+## **Constrained Assets**
+
+Building a diverse portfolio constrained to the following assets
+
 - **S&P 500 Index** (large-cap US stocks)
 - **US Small Cap Stocks**
 - **10-Year Treasuries**
