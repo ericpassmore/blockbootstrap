@@ -1,0 +1,11 @@
+{
+	"success": true,
+	"data": [
+		{ "date": "2025-07-20", "close": 513.71, "volume": 79564733, "timestamp": 1752984000000 },
+		{ "date": "2025-07-27", "close": 524.11, "volume": 137752650, "timestamp": 1753588800000 },
+		{ "date": "2025-08-03", "close": 522.04, "volume": 97486428, "timestamp": 1754193600000 },
+		{ "date": "2025-08-10", "close": 520.17, "volume": 103984799, "timestamp": 1754798400000 },
+		{ "date": "2025-08-17", "close": 505.72, "volume": 72964624, "timestamp": 1755403200000 }
+	],
+	"metadata": { "ticker": "MSFT", "from": "2025-07-20", "to": "2025-08-17", "count": 5 }
+}
