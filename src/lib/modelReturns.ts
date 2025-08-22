@@ -96,7 +96,10 @@ export class ModelReturns {
 						key in yearData ? (yearData[key as keyof MarketData] as number) : 0;
 
 					if (options.inflationAdjusted) {
-						assetReturnPercentage -= yearData.inflation || 0;
+						const inflation = yearData.inflation || 0;
+						// exact formula: (1 + nominal) / (1 + inflation) - 1
+						assetReturnPercentage =
+							((1 + assetReturnPercentage / 100) / (1 + inflation / 100) - 1) * 100;
 					}
 
 					switch (key) {

@@ -264,7 +264,7 @@ describe('Taxes/Appreciation', () => {
 		);
 
 		expect(model.finalValue).toBeCloseTo(407806.67, 2);
-		expect(modelInflationAdjusted.finalValue).toBeCloseTo(226341.85, 2);
+		expect(modelInflationAdjusted.finalValue).toBeCloseTo(219453.53, 2);
 		expect(modelInflationAdjusted.finalValue).toBeLessThan(model.finalValue);
 	});
 
@@ -292,7 +292,7 @@ describe('Taxes/Appreciation', () => {
 		);
 
 		expect(model.finalValue).toBeCloseTo(406630.54, 2);
-		expect(modelInflationAdjusted.finalValue).toBeCloseTo(232027.93, 2);
+		expect(modelInflationAdjusted.finalValue).toBeCloseTo(218820.62, 2);
 		expect(modelInflationAdjusted.finalValue).toBeLessThan(model.finalValue);
 	});
 
