@@ -98,7 +98,8 @@ export class ModelReturns {
 					if (options.inflationAdjusted) {
 						const inflation = yearData.inflation || 0;
 						// exact formula: (1 + nominal) / (1 + inflation) - 1
-						assetReturnPercentage = (1 + assetReturnPercentage) / (1 + inflation) - 1;
+						assetReturnPercentage =
+							((1 + assetReturnPercentage / 100) / (1 + inflation / 100) - 1) * 100;
 					}
 
 					switch (key) {
