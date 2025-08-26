@@ -12,7 +12,7 @@
 			"inflation": 2.9,
 			"sp500DividendYield": 2.9,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": -11.85,
 			"emergingMarkets": 11.4,
 			"nasdaq100": 8.86
@@ -29,7 +29,7 @@
 			"inflation": 2.75,
 			"sp500DividendYield": 2.72,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 32.94,
 			"emergingMarkets": 74.84,
 			"nasdaq100": 10.58
@@ -46,7 +46,7 @@
 			"inflation": 2.67,
 			"sp500DividendYield": 2.91,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 8.06,
 			"emergingMarkets": -7.32,
 			"nasdaq100": 1.5
@@ -63,7 +63,7 @@
 			"inflation": 2.54,
 			"sp500DividendYield": 2.3,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 11.55,
 			"emergingMarkets": -5.21,
 			"nasdaq100": 42.54
@@ -80,7 +80,7 @@
 			"inflation": 3.32,
 			"sp500DividendYield": 2.01,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 6.36,
 			"emergingMarkets": 6.03,
 			"nasdaq100": 42.54
@@ -97,7 +97,7 @@
 			"inflation": 1.7,
 			"sp500DividendYield": 1.6,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 2.06,
 			"emergingMarkets": -11.59,
 			"nasdaq100": 20.63
@@ -114,7 +114,7 @@
 			"inflation": 1.61,
 			"sp500DividendYield": 1.32,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 20.33,
 			"emergingMarkets": -25.34,
 			"nasdaq100": 85.3
@@ -131,7 +131,7 @@
 			"inflation": 2.68,
 			"sp500DividendYield": 1.14,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": 27.3,
 			"emergingMarkets": 66.41,
 			"nasdaq100": 101.95
@@ -148,7 +148,7 @@
 			"inflation": 3.39,
 			"sp500DividendYield": 1.23,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": -13.96,
 			"emergingMarkets": -30.61,
 			"nasdaq100": -36.84
@@ -165,7 +165,7 @@
 			"inflation": 1.55,
 			"sp500DividendYield": 1.37,
 			"usSmallCapDividendYield": 1.5,
-			"bitcoin": 1,
+			"crypto:BTC": 1,
 			"internationalEquity": -21.21,
 			"emergingMarkets": -2.37,
 			"nasdaq100": -32.65

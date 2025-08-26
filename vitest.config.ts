@@ -32,12 +32,25 @@ export default mergeConfig(
 						name: 'server',
 						environment: 'node',
 						include: ['src/**/*.{test,spec}.{js,ts}'],
-						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/tests/db/**/*.{test,spec}.{js,ts}']
 					},
 					resolve: {
 						alias: {
 							$lib: path.resolve(__dirname, './src/lib'),
 							'$env/static/private': path.resolve(__dirname, './src/tests/mocks/env.ts')
+						}
+					}
+				},
+				{
+					test: {
+						name: 'db-tests',
+						environment: 'node',
+						include: ['src/tests/db/**/*.{test,spec}.{js,ts}']
+					},
+					resolve: {
+						alias: {
+							$lib: path.resolve(__dirname, './src/lib'),
+							'$env/static/private': path.resolve(__dirname, './src/tests/mocks/env-db.ts')
 						}
 					}
 				}

@@ -17,7 +17,10 @@ export interface MarketData {
 	inflation: number;
 	sp500DividendYield: number;
 	usSmallCapDividendYield: number;
-	bitcoin: number;
+	'crypto:BTC': number;
+	'crypto:ETH': number;
+	'crypto:SOL': number;
+	'crypto:XRP': number;
 	internationalEquity: number;
 	emergingMarkets: number;
 	nasdaq100: number;
@@ -83,7 +86,10 @@ export class BlockData {
 					inflation: this.safeParsePercentage(values[9]),
 					sp500DividendYield: this.safeParsePercentage(values[10]),
 					usSmallCapDividendYield: 1.5,
-					bitcoin: this.safeParsePercentage(values[11]),
+					'crypto:BTC': this.safeParsePercentage(values[11]),
+					'crypto:ETH': this.safeParsePercentage(values[15]),
+					'crypto:SOL': this.safeParsePercentage(values[16]),
+					'crypto:XRP': this.safeParsePercentage(values[17]),
 					internationalEquity: this.safeParsePercentage(values[12]),
 					emergingMarkets: this.safeParsePercentage(values[13]),
 					nasdaq100: this.safeParsePercentage(values[14])

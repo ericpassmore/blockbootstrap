@@ -59,7 +59,7 @@ describe('GET /api/block/[blockNumber]', () => {
 			'inflation',
 			'sp500DividendYield',
 			'usSmallCapDividendYield',
-			'bitcoin',
+			'crypto:BTC',
 			'internationalEquity',
 			'emergingMarkets',
 			'nasdaq100'

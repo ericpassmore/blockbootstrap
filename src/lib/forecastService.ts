@@ -1,6 +1,9 @@
 import { BlockData } from '$lib/block';
 import { ModelReturns, type Allocation, type AnnualReturn } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
+import { db } from '$lib/server/db'; // your Drizzle DB instance
+import { cryptoAssetClass } from '$lib/server/cryptoAssetClass';
+import { powerLawFormula } from '$lib/server/powerLawFormula';
 
 interface PercentileResult {
 	value: number;
@@ -67,6 +70,8 @@ export class ForecastService {
 
 		const allForecasts = await instance.buildAllForecasts(allocations, options);
 		const statistics = instance.calculateStatistics(allForecasts);
+		await cryptoAssetClass.loadAssets(db);
+		await powerLawFormula.loadFits(db);
 
 		return new ForecastService(startingAmount, allForecasts, statistics);
 	}

@@ -80,7 +80,7 @@
 		{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
 		{ key: 'realEstate', label: 'Real Estate', value: 20 },
 		{ key: 'gold', label: 'Gold', value: 5 },
-		{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
+		{ key: 'crypto:BTC', label: 'Bitcoin', value: 0 }
 	];
 
 	// Reactive calculation for the total allocation
