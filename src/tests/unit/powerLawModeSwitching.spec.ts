@@ -1,6 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { ModelReturns, type Allocation } from '$lib/modelReturns';
+import { describe, it, expect, vi } from 'vitest';
 import { ForecastOptions } from '$lib/forecastOptions';
+import { cryptoAssetClassMock } from '../mocks/cryptoAssetClassMock';
+import { powerLawFormulaMock } from '../mocks/powerLawFormulaMock';
+
+// mock *before* importing the module under test
+vi.mock('$lib/server/cryptoAssetClass', () => ({
+	cryptoAssetClass: cryptoAssetClassMock
+}));
+vi.mock('$lib/server/powerLawFormula', () => ({
+	powerLawFormula: powerLawFormulaMock
+}));
+
+import { ModelReturns, type Allocation } from '$lib/modelReturns';
 
 describe('Power Law Mode Switching', () => {
 	it('should produce different results between power law and historical crypto modes', async () => {

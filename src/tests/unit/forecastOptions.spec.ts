@@ -1,4 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { cryptoAssetClassMock } from '../mocks/cryptoAssetClassMock';
+import { powerLawFormulaMock } from '../mocks/powerLawFormulaMock';
+
+// mock *before* importing the module under test
+vi.mock('$lib/server/cryptoAssetClass', () => ({
+	cryptoAssetClass: cryptoAssetClassMock
+}));
+vi.mock('$lib/server/powerLawFormula', () => ({
+	powerLawFormula: powerLawFormulaMock
+}));
+
 import { ForecastOptions } from '$lib/forecastOptions';
 
 describe('ForecastOptions Crypto Settings', () => {

@@ -62,6 +62,7 @@
 	<a href="/inspect/1">Inspect Block</a>
 	<a href="/methodology">Methodology</a>
 	<a href="/privacy">Privacy</a>
+	<a href="/userguide">User Guide</a>
 	<button
 		class={isLoggedIn ? 'logout-button' : 'login-button'}
 		id="login-button"

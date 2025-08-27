@@ -19,7 +19,7 @@
 		averageCAGR: number;
 		finalValueStdDev: number;
 		error: string;
-		options: [boolean, boolean, number];
+		options: [boolean, boolean, number, boolean];
 	}
 
 	import { onDestroy, onMount } from 'svelte';
@@ -32,6 +32,7 @@
 	let rebalance = form?.options?.[0] || false;
 	let inflationAdjusted = form?.options?.[1] || false;
 	let returnWindow = form?.options?.[2] || 10;
+	let cryptousehistoricalprices = form?.options?.[3] || false;
 
 	onMount(() => {
 		isLoggedIn = !!localStorage.getItem('token');
@@ -330,6 +331,18 @@
 						</div>
 					</div>
 					<small class="tooltip">length of forecast</small>
+				</div>
+				<div class="checkbox-item">
+					<div class="checkbox-label-row">
+						<input
+							type="checkbox"
+							id="cryptousehistoricalprices"
+							name="cryptousehistoricalprices"
+							bind:checked={cryptousehistoricalprices}
+						/>
+						<label for="cryptousehistoricalprices">Crypto Use Real Data</label>
+					</div>
+					<small class="tooltip">switches to historical prices for crypto</small>
 				</div>
 			</div>
 		</div>

@@ -75,7 +75,6 @@ export class ModelReturns {
 		let blockNumberIdx = 0;
 
 		for (const blockNumber of blockNumbers) {
-			blockNumberIdx++;
 			const block = BlockData.getSeries(blockNumber);
 			if (!block || block.length === 0) {
 				console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
@@ -183,6 +182,7 @@ export class ModelReturns {
 				currentPortfolioValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
 			}
 			currentYearOffset += block.length; // Increment year offset for next block
+			blockNumberIdx++; // Increment to track position in the array of blocks
 		}
 		this.finalValue = currentPortfolioValue;
 	}
@@ -220,7 +220,7 @@ export class ModelReturns {
 			symbol,
 			new Date().getFullYear() + blockNumber + yearIndex
 		);
-		return powerLawReturn === undefined ? 0 : powerLawReturn * 100;
+		return powerLawReturn === undefined ? 0 : powerLawReturn;
 	}
 
 	private _initializeAssetValues(

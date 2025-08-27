@@ -70,8 +70,6 @@ export class ForecastService {
 
 		const allForecasts = await instance.buildAllForecasts(allocations, options);
 		const statistics = instance.calculateStatistics(allForecasts);
-		await cryptoAssetClass.loadAssets(db);
-		await powerLawFormula.loadFits(db);
 
 		return new ForecastService(startingAmount, allForecasts, statistics);
 	}
@@ -82,6 +80,8 @@ export class ForecastService {
 	): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
+		await cryptoAssetClass.loadAssets(db);
+		await powerLawFormula.loadFits(db);
 		const excludeIncompleteBlocks = true;
 		const numberOfBlocks = BlockData.getAllData(excludeIncompleteBlocks).size;
 		const blockCombinations: number[][] = [];
