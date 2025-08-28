@@ -34,6 +34,12 @@
 		message = '';
 		emailSubmissionSuccessfull = false;
 	}
+
+	function handleNavSelection(event: Event) {
+		const selectElement = event.target as HTMLSelectElement;
+		window.location.href = selectElement.value;
+	}
+
 	const goatcounterUrl = 'https://blockbootstrap.goatcounter.com/count';
 
 	onMount(() => {
@@ -58,11 +64,13 @@
 		<img src="/logo_b_halo.svg" alt="BlockBootstrap Logo" />
 		Home
 	</a>
-	<a href="/ai-assistant">AI Assistant</a>
-	<a href="/inspect/1">Inspect Block</a>
-	<a href="/methodology">Methodology</a>
-	<a href="/privacy">Privacy</a>
-	<a href="/userguide">User Guide</a>
+	<div class="nav-links">
+		<a href="/ai-assistant">AI Assistant</a>
+		<a href="/inspect/1">Inspect Block</a>
+		<a href="/methodology">Methodology</a>
+		<a href="/privacy">Privacy</a>
+		<a href="/userguide">User Guide</a>
+	</div>
 	<button
 		class={isLoggedIn ? 'logout-button' : 'login-button'}
 		id="login-button"
@@ -71,6 +79,14 @@
 		<span class="material-icons">person</span>
 		{isLoggedIn ? 'Logout' : 'Login'}
 	</button>
+	<select id="nav-dropdown" class="nav-dropdown" onchange={handleNavSelection}>
+		<option value="/">Home</option>
+		<option value="/ai-assistant">AI Assistant</option>
+		<option value="/inspect/1">Inspect Block</option>
+		<option value="/methodology">Methodology</option>
+		<option value="/privacy">Privacy</option>
+		<option value="/userguide">User Guide</option>
+	</select>
 </nav>
 
 <main>
