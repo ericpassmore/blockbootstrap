@@ -160,3 +160,12 @@
 
 	<button type="submit" disabled={isInvalid}>Run Forecast</button>
 </form>
+
+<style>
+	/* Ensure the label and radio group stack vertically */
+	.checkbox-label-row {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+</style>
