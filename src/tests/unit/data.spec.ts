@@ -54,7 +54,7 @@ describe('Value Market Data', () => {
 				expect(year.realEstate).not.toBeNaN();
 				expect(year.realEstate).not.toBe(0);
 
-				expect(year["crypto:BTC"]).not.toBeNaN();
+				expect(year['crypto:BTC']).not.toBeNaN();
 				expect(year['crypto:BTC']).not.toBe(0);
 
 				expect(year.internationalEquity).not.toBeNaN();

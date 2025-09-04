@@ -32,7 +32,10 @@ export default mergeConfig(
 						name: 'server',
 						environment: 'node',
 						include: ['src/**/*.{test,spec}.{js,ts}'],
-						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'src/tests/db/**/*.{test,spec}.{js,ts}']
+						exclude: [
+							'src/**/*.svelte.{test,spec}.{js,ts}',
+							'src/tests/db/**/*.{test,spec}.{js,ts}'
+						]
 					},
 					resolve: {
 						alias: {

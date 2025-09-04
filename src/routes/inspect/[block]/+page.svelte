@@ -39,7 +39,7 @@
 				<li><strong>Gold:</strong> {item.gold}%</li>
 				<li><strong>Inflation:</strong> {item.inflation}%</li>
 				<li><strong>S&P 500 Dividend Yield:</strong> {item.sp500DividendYield}%</li>
-				<li><strong>Bitcoin:</strong> {item["crypto:BTC"]}%</li>
+				<li><strong>Bitcoin:</strong> {item['crypto:BTC']}%</li>
 				<li><strong>International Equity:</strong> {item.internationalEquity}%</li>
 				<li><strong>Emerging Markets:</strong> {item.emergingMarkets}%</li>
 				<li><strong>NASDAQ 100:</strong> {item.nasdaq100}%</li>

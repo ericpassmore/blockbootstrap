@@ -16,7 +16,7 @@
 	});
 
 	// Handle form submission
-	function handleFormSubmit(event: Event) {
+	function handleFormSubmit() {
 		// Let the form submit naturally to the server action
 		// The scrollPastForm will be called after results are received
 	}
