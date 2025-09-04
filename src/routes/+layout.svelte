@@ -65,7 +65,7 @@
 		Home
 	</a>
 	<div class="nav-links">
-		<a href="/ai-assistant">AI Assistant</a>
+		<a href="/builder">Portfolio Builder</a>
 		<a href="/inspect/1">Inspect Block</a>
 		<a href="/methodology">Methodology</a>
 		<a href="/privacy">Privacy</a>
@@ -81,7 +81,7 @@
 	</button>
 	<select id="nav-dropdown" class="nav-dropdown" onchange={handleNavSelection}>
 		<option value="/">Home</option>
-		<option value="/ai-assistant">AI Assistant</option>
+		<option value="/builder">Portfolio Builder</option>
 		<option value="/inspect/1">Inspect Block</option>
 		<option value="/methodology">Methodology</option>
 		<option value="/privacy">Privacy</option>

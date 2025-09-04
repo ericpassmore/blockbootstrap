@@ -1,11 +1,16 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { tick, onMount } from 'svelte';
 	import { marked } from 'marked';
 	import DOMPurify from 'dompurify';
 
 	let inputValue: string = $state('');
 	let textareaElement: HTMLTextAreaElement;
 	let apiResponse: string[] = $state([]);
+
+	let isLoggedIn = $state(false);
+	onMount(() => {
+		isLoggedIn = !!localStorage.getItem('token');
+	});
 
 	async function adjustHeight() {
 		if (textareaElement) {
@@ -82,23 +87,30 @@
 
 <h1>AI Assistant</h1>
 
-{#if apiResponse.length > 0}
-	<div class="response-container">
-		<!-- eslint-disable-next-line svelte/require-each-key -->
-		{#each apiResponse as response}
-			<!-- been purified by DOMPurify -->
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-			<div class="response-block">{@html response}</div>
-		{/each}
+{#if !isLoggedIn}
+	<div class="forbidden-message">
+		<h2>Access Forbidden</h2>
+		<p>You must be logged in to access this page. Please log in to continue.</p>
 	</div>
-{/if}
+{:else}
+	{#if apiResponse.length > 0}
+		<div class="response-container">
+			<!-- eslint-disable-next-line svelte/require-each-key -->
+			{#each apiResponse as response}
+				<!-- been purified by DOMPurify -->
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+				<div class="response-block">{@html response}</div>
+			{/each}
+		</div>
+	{/if}
 
-<textarea
-	class="expanding-textarea"
-	bind:this={textareaElement}
-	bind:value={inputValue}
-	rows="1"
-	placeholder="Type your text here..."
-	oninput={adjustHeight}
-	onkeydown={onKeyDown}
-></textarea>
+	<textarea
+		class="expanding-textarea"
+		bind:this={textareaElement}
+		bind:value={inputValue}
+		rows="1"
+		placeholder="Type your text here..."
+		oninput={adjustHeight}
+		onkeydown={onKeyDown}
+	></textarea>
+{/if}
