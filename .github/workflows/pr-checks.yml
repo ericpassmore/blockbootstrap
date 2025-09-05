@@ -38,7 +38,7 @@ jobs:
         run: npm run lint
 
       - name: List test files
-        run: ls -R tests
+        run: ls -R src/tests
 
       - name: Run tests
-        run: npx cross-env ENVIRONMENT=TEST vitest run tests/{api,db,unit} --logLevel=debug
+        run: npx cross-env ENVIRONMENT=TEST vitest run src/tests/{api,db,unit} --logLevel=debug
