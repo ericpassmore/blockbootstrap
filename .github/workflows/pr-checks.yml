@@ -77,7 +77,7 @@ jobs:
         run: psql -h localhost -d foo -U postgres -f src/tests/db/setup.sql
         env:
           PGPASSWORD: ${{ secrets.DATABASE_PASSWORD || 'postgres' }}
-      - run: npx cross-env vitest run src/tests/{api,db} --reporter=verbose
+      - run: npx cross-env ENVIRONMENT=CI vitest run src/tests/{api,db} --environment node --reporter=verbose
 
   check-all:
     runs-on: ubuntu-latest
