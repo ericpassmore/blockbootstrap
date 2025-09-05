@@ -12,7 +12,10 @@ type IncomeAssetKey = Extract<keyof MarketData, 'treasury10Year' | 'baaCorp'>;
  * The `key` is type-safe and must correspond to an asset in the MarketData interface.
  */
 export interface Allocation {
-	key: keyof Omit<MarketData, 'year' | 'inflation' | 'sp500DividendYield'>;
+	key: keyof Omit<
+		MarketData,
+		'year' | 'inflation' | 'sp500DividendYield' | 'usSmallCapDividendYield'
+	>;
 	label: string;
 	value: number; // The percentage allocation
 }

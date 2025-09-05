@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import type { Allocation } from '$lib/modelReturns';
+import { Portfolio } from 'blockbootstrapagent';
 
 export const actions: Actions = {
 	default: async ({ request }) => {
@@ -21,10 +22,10 @@ export const actions: Actions = {
 		}
 
 		try {
-			const Portfolio = (await import('blockbootstrapagent')).Portfolio;
-			const result: Allocation = await Portfolio.buildOptimizeVariance(target, cryptoLimit);
+			const portfolio = new Portfolio();
+			const result: Allocation[] = await portfolio.buildOptimizeVariance(target, cryptoLimit);
 			return { success: true, data: result };
-		} catch (error) {
+		} catch {
 			return fail(500, { error: 'Failed to build portfolio' });
 		}
 	}
