@@ -20,15 +20,11 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://postgres:${{ secrets.DATABASE_PASSWORD || 'postgres' }}@localhost:5432/foo
-      DB_SSL: false
-      VITE_DATABASE_URL: postgresql://postgres:${{ secrets.DATABASE_PASSWORD || 'postgres' }}@localhost:5432/foo
-      VITE_DB_SSL: false
-      BREVO_API_KEY: foobar
-      VITE_BREVO_API_KEY: foobar
-      POLYGON_API_KEY: foobar
-      OPENAI_API_KEY: foobar
-      UPLOAD_SECRET: foobar
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      VITE_BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      UPLOAD_SECRET: ${{ secrets.UPLOAD_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -81,7 +77,7 @@ jobs:
         run: psql -h localhost -d foo -U postgres -f src/tests/db/setup.sql
         env:
           PGPASSWORD: ${{ secrets.DATABASE_PASSWORD || 'postgres' }}
-      - run: npx cross-env ENVIRONMENT=TEST vitest run src/tests/{api,db}
+      - run: npx cross-env ENVIRONMENT=TEST vitest run src/tests/{api,db} --environment node --reporter=verbose
 
   check-all:
     runs-on: ubuntu-latest
