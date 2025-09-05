@@ -15,6 +15,7 @@ jobs:
       VITE_DB_SSL: false
       BREVO_API_KEY: foobar
       VITE_BREVO_API_KEY: foobar
+      POLYGON_API_KEY: foobar
 
     steps:
       - name: Checkout repository
