@@ -16,6 +16,8 @@ jobs:
       BREVO_API_KEY: foobar
       VITE_BREVO_API_KEY: foobar
       POLYGON_API_KEY: foobar
+      OPENAI_API_KEY: foobar
+      UPLOAD_SECRET: foobar
 
     steps:
       - name: Checkout repository
