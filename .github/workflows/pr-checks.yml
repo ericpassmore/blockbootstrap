@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
@@ -37,5 +37,8 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: List test files
+        run: ls -R tests
+
       - name: Run tests
-        run: npm run test:unit
+        run: npx cross-env ENVIRONMENT=TEST vitest run tests/{api,db,unit} --logLevel=debug
