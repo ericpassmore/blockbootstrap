@@ -137,21 +137,11 @@
 			<fieldset>
 				<legend>Return Type</legend>
 				<label>
-					<input
-						type="radio"
-						name="returnType"
-						bind:group={returnType}
-						value="nominal"
-					/>
+					<input type="radio" name="returnType" bind:group={returnType} value="nominal" />
 					Nominal
 				</label>
 				<label>
-					<input
-						type="radio"
-						name="returnType"
-						bind:group={returnType}
-						value="real"
-					/>
+					<input type="radio" name="returnType" bind:group={returnType} value="real" />
 					Inflation Adjusted
 				</label>
 			</fieldset>

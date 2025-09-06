@@ -3,8 +3,7 @@ import type { Actions } from './$types';
 import type { Allocation } from '$lib/modelReturns';
 import { Portfolio } from 'blockbootstrapagent';
 
-
-type ReturnType = 'nominal' | 'real' | 'excess'
+type ReturnType = 'nominal' | 'real' | 'excess';
 
 export const actions: Actions = {
 	default: async ({ request }) => {
@@ -36,7 +35,6 @@ export const actions: Actions = {
 			typeof rawReturnType === 'string' && validReturnTypes.includes(rawReturnType as ReturnType)
 				? (rawReturnType as ReturnType)
 				: undefined;
-
 
 		try {
 			const portfolio = new Portfolio();
