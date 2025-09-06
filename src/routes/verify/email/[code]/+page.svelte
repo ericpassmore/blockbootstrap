@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	let { data } = $props();
 	let isVerified = $state(false);
 
@@ -21,12 +22,12 @@
 	{#if isVerified}
 		<p class="success-message">
 			Verification successful! Redirecting to the main page...
-			<a href="/" class="home-link"> 🏠 Back to Home </a>
+			<a href={resolve('/')} class="home-link"> 🏠 Back to Home </a>
 		</p>
 	{:else}
 		<p class="error-message">
 			{data.error}
-			<a href="/" class="home-link"> 🏠 Back to Home </a>
+			<a href={resolve('/')} class="home-link"> 🏠 Back to Home </a>
 		</p>
 	{/if}
 </div>
