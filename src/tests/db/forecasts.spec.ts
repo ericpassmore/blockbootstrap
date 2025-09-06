@@ -51,7 +51,7 @@ describe('Forecast Service', () => {
 	});
 
 	it('check real results with 100% Bitcoin', async () => {
-		const allocations: Allocation[] = [{ key: 'bitcoin', label: 'Bitcoin', value: 100 }];
+		const allocations: Allocation[] = [{ key: 'crypto:BTC', label: 'Bitcoin', value: 100 }];
 		const startingAmount = 100000;
 		const forecastOptions = new ForecastOptions();
 		const forecastService = await ForecastService.create(
@@ -103,7 +103,7 @@ describe('Forecast Service', () => {
 			{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
 			{ key: 'realEstate', label: 'Real Estate', value: 20 },
 			{ key: 'gold', label: 'Gold', value: 5 },
-			{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
+			{ key: 'crypto:BTC', label: 'Bitcoin', value: 0 }
 		];
 		const startingAmount = 10000;
 
@@ -131,7 +131,7 @@ describe('Forecast Service', () => {
 			{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
 			{ key: 'realEstate', label: 'Real Estate', value: 20 },
 			{ key: 'gold', label: 'Gold', value: 5 },
-			{ key: 'bitcoin', label: 'Bitcoin', value: 0 }
+			{ key: 'crypto:BTC', label: 'Bitcoin', value: 0 }
 		];
 		const startingAmount = 10000;
 

@@ -8,13 +8,16 @@ export type ForecastOptionsInterface = {
 
 export class ForecastOptions {
 	public returnWindow: ReturnWindow;
+	public cryptoUseHistoricalPrice: boolean;
 
 	constructor(
 		public rebalance: boolean = false,
 		public inflationAdjusted: boolean = false,
-		returnWindow: number = 10
+		returnWindow: number = 10,
+		cryptoUseHistoricalPrice: boolean = false
 	) {
 		this.returnWindow = this.sanitizeReturnWindow(returnWindow);
+		this.cryptoUseHistoricalPrice = cryptoUseHistoricalPrice;
 	}
 
 	private sanitizeReturnWindow(value: number): ReturnWindow {
@@ -45,5 +48,13 @@ export class ForecastOptions {
 	// Optional setter to enforce the restriction at runtime
 	public setReturnWindow(value: number) {
 		this.returnWindow = this.sanitizeReturnWindow(value);
+	}
+
+	public cryptoPowerLawPrediction() {
+		this.cryptoUseHistoricalPrice = false;
+	}
+
+	public cryptoHistoricalPricing() {
+		this.cryptoUseHistoricalPrice = true;
 	}
 }

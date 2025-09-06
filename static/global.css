@@ -4,9 +4,11 @@
     --dark-primary-foreground-color: #f9f9f9;
     --primary-header-color: #f2f2f2;
     --primary-highligh-color: #f9f9f9;
+    --primary-separator-color: #343a40;
     --secondary-background-color: #343a40;
     --secondary-foreground-color: white;
     --secondary-highligh-color: #ced4da;
+    --secondary-separator-color: #ced4da;
     --disabled-color: #ccc;
     --error-foreground-color: #d9534f;
     --dark-error-foreground-color: #d9534f;
@@ -63,6 +65,10 @@ footer a:hover {
     font-weight: 500;
 }
 
+.nav-links a {
+    padding: 0.8rem;
+}
+
 main {
     padding: 1rem 0 3rem 0;
     max-width: 800px;
@@ -74,6 +80,8 @@ body {
     color: var(--primary-foreground-color);
     background-color: var(--primary-background-color);
     font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .form-group {
@@ -423,7 +431,9 @@ h1 {
 /* Checkbox styling */
 .checkbox-container {
 	display: flex;
-	gap: 2rem;
+	flex-wrap: wrap;
+	gap: 1rem;
+	justify-content: flex-start;
 	align-items: center;
 }
 
@@ -440,6 +450,8 @@ h1 {
 
 .checkbox-item label {
 	font-weight: 500;
+    flex: 1 1 auto;
+	min-width: 150px; /* Ensures items wrap nicely on smaller screens */
 }
 
 .checkbox-label-row {
@@ -518,4 +530,39 @@ h1 {
 .q3-row {
     color: var(--dark-primary-foreground-color);
     background-color: var(--legend-quartile-color);
+}
+
+/* Responsive Navigation Styles */
+@media (max-width: 1023px) {
+    nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .nav-home-link {
+        flex: 1 1 auto;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .nav-dropdown {
+        display: block;
+        background-color: var(--secondary-foreground-color);
+        color: var(--secondary-background-color);
+        border: 1px solid var(--secondary-highligh-color);
+        padding: 0.5rem;
+        font-size: 1rem;
+        border-radius: 4px;
+        margin-left: auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .nav-dropdown {
+        display: none;
+    }
 }

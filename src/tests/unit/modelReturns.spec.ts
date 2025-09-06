@@ -60,7 +60,7 @@ describe('Taxes/Appreciation', () => {
 		const allocations: Allocation[] = [
 			{ key: 'sp500', label: 'S&P 500 index', value: 60 },
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 30 },
-			{ key: 'bitcoin', label: 'Bitcoin', value: 10 }
+			{ key: 'crypto:BTC', label: 'Bitcoin', value: 10 }
 		];
 		const startingAmount = 100000;
 		// options
@@ -161,7 +161,7 @@ describe('Taxes/Appreciation', () => {
 		);
 	});
 	it('bitcoin allocation in Block 1 should be ok', async () => {
-		const allocations: Allocation[] = [{ key: 'bitcoin', label: 'Bitcoin', value: 100 }];
+		const allocations: Allocation[] = [{ key: 'crypto:BTC', label: 'Bitcoin', value: 100 }];
 		const startingAmount = 100000;
 		// options
 		const defaultOptions = new ForecastOptions();
@@ -299,7 +299,7 @@ describe('Taxes/Appreciation', () => {
 	it('should generate significant capital gains taxes with a volatile asset', async () => {
 		const allocations: Allocation[] = [
 			{ key: 'treasury10Year', label: '10-Year Treasury', value: 90 },
-			{ key: 'bitcoin', label: 'Bitcoin', value: 10 }
+			{ key: 'crypto:BTC', label: 'Bitcoin', value: 10 }
 		];
 		const startingAmount = 100000;
 		// options

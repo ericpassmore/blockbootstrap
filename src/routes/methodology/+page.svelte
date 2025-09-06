@@ -70,9 +70,14 @@
 			reduces the number of blocks, while keeping the historical data.
 		</p>
 		<p>
-			When certain data is missing (e.g., Bitcoin before 2010), the return is treated as flat —
-			similar to holding cash. This means earlier periods show no impact from these assets until
-			they existed historically.
+			Due to their limited data and volatility <strong
+				>crypto currencies use a projected returns</strong
+			>
+			computed by fitting a power law function to a set of monthly data staring in April 2020. Optionall
+			you may select to use the historical data for crypto currency prices. With historical prices, certain
+			data is missing (e.g., Bitcoin before 2010). In that case the return is treated as flat — similar
+			to holding cash. This means earlier periods show no impact from these assets until they existed
+			historically.
 		</p>
 		<p>
 			Taxes are simplified estimates using current tax rates and schedules; historical tax changes

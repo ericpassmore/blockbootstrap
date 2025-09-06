@@ -1,6 +1,9 @@
 import { BlockData } from '$lib/block';
 import { ModelReturns, type Allocation, type AnnualReturn } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
+import { db } from '$lib/server/db'; // your Drizzle DB instance
+import { cryptoAssetClass } from '$lib/server/cryptoAssetClass';
+import { powerLawFormula } from '$lib/server/powerLawFormula';
 
 interface PercentileResult {
 	value: number;
@@ -77,6 +80,8 @@ export class ForecastService {
 	): Promise<Forecast[]> {
 		const allForecasts: Forecast[] = [];
 		await BlockData.init();
+		await cryptoAssetClass.loadAssets(db);
+		await powerLawFormula.loadFits(db);
 		const excludeIncompleteBlocks = true;
 		const numberOfBlocks = BlockData.getAllData(excludeIncompleteBlocks).size;
 		const blockCombinations: number[][] = [];
