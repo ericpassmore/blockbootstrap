@@ -1,6 +1,7 @@
 <script lang="ts">
 	let { children } = $props(); // Access the children prop
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 
@@ -60,16 +61,16 @@
 </script>
 
 <nav>
-	<a href="/" class="nav-home-link">
+	<a href={resolve('/')} class="nav-home-link">
 		<img src="/logo_b_halo.svg" alt="BlockBootstrap Logo" />
 		Home
 	</a>
 	<div class="nav-links">
-		<a href="/builder">Portfolio Builder</a>
-		<a href="/inspect/1">Inspect Block</a>
-		<a href="/methodology">Methodology</a>
-		<a href="/privacy">Privacy</a>
-		<a href="/userguide">User Guide</a>
+		<a href={resolve('/builder')}>Portfolio Builder</a>
+		<a href={resolve('/inspect/1')}>Inspect Block</a>
+		<a href={resolve('/methodology')}>Methodology</a>
+		<a href={resolve('/privacy')}>Privacy</a>
+		<a href={resolve('/userguide')}>User Guide</a>
 	</div>
 	<button
 		class={isLoggedIn ? 'logout-button' : 'login-button'}
