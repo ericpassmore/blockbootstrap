@@ -53,9 +53,7 @@ export default mergeConfig(
 					resolve: {
 						alias: {
 							$lib: path.resolve(__dirname, './src/lib'),
-							...(process.env.ENVIRONMENT === 'TEST' && {
-								'$env/static/private': path.resolve(__dirname, './src/tests/mocks/env-db.ts')
-							})
+							'$env/static/private': path.resolve(__dirname, './src/tests/mocks/env.ts')
 						}
 					}
 				}
