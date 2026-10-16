@@ -2,7 +2,7 @@
 
 ## Goal reference
 
-- `goals/calculation-corrections/goals.v1.md` (locked by the user's requests to implement the reviewed findings and fix the remaining type checks).
+- `goals/calculation-corrections/goals.v2.md` (locked by the user's requests to implement the reviewed findings, fix type checks, and stop deploying precomputed analysis CSVs).
 
 ## Scope
 
@@ -56,3 +56,12 @@
 - Lint: `./node_modules/.bin/eslint src/app.d.ts src/routes/ai-assistant/+page.svelte 'src/routes/quote/[ticker]/+page.svelte' src/tests/api/blockNumber.spec.ts src/tests/mocks/polygonServiceMock.ts src/tests/e2e/static-pages.spec.ts src/tests/e2e/userguide.spec.ts` — PASS.
 - Formatting: `./node_modules/.bin/prettier --check src/app.d.ts src/routes/ai-assistant/+page.svelte 'src/routes/quote/[ticker]/+page.svelte' src/tests/api/blockNumber.spec.ts src/tests/mocks/polygonServiceMock.ts src/tests/e2e/static-pages.spec.ts src/tests/e2e/userguide.spec.ts src/tests/data/block_response.json` — PASS.
 - Production build: Node 22 build verified again after the UI type corrections.
+
+## Analysis deployment follow-up
+
+- User approved stopping deployment of precomputed analysis CSVs. Runtime calculation code has no remaining references to them; only offline tests and regeneration use them.
+- Moved all 1,405 reference CSVs from `static/data/analysis/` to repository-only `data/analysis/`. SHA-256 checks before/after relocation confirmed every file is unchanged.
+- Updated the covariance generation script and validation tests to use the new directory. `.vercelignore` excludes the offline directory and stale `.svelte-kit` artifacts from ordinary CLI uploads. Moving outside `static` also excludes the files from Git-based builds and fresh prebuilt deployment artifacts.
+- Added `npm run check:deployment` to assert the final `.vercel/output` contains no precomputed analysis CSVs and contains unchanged copies of all five runtime CSVs. Existing deployments are unaffected until the rebuilt code is deployed.
+- Validation: Node 22 production build PASS; `npm run check:deployment` PASS; `npm run test:unit` 88/88 PASS; `npm run check` 0 errors/0 warnings; changed-source ESLint and Prettier PASS; `git diff --check` PASS. Regeneration at the new location is byte-identical.
+- Commands: `PATH=/Users/eric/.nvm/versions/node/v22.18.0/bin:$PATH npm run build`; `npm run check:deployment`; `npm run test:unit`; `npm run check`; `python3 scripts/regenerate_covariance.py`; `./node_modules/.bin/eslint src/tests/unit/portfolioOptimizer.spec.ts scripts/check-deployment-data.mjs`; `./node_modules/.bin/prettier --check package.json src/tests/unit/portfolioOptimizer.spec.ts static/DATA_DESCRIPTION.md scripts/check-deployment-data.mjs`.

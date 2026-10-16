@@ -12,7 +12,9 @@ This document describes the data contained in the following files:
 
 ## Naming Conventions and File Series
 
-The application bundles these local CSV files for calculations. Portfolio optimization computes means and sample covariance from the same selected return type (nominal, real, or excess); it does not combine real expected returns with nominal covariance.
+The application bundles the runtime return and yield CSVs under `static/data` for calculations. Portfolio optimization computes means and sample covariance from the same selected return type (nominal, real, or excess); it does not read the precomputed analysis files.
+
+Precomputed covariance and mean/std files live in the repository's `data/analysis/` directory, outside the public `static/` directory. They remain available for local validation and regeneration, and `.vercelignore` excludes them from CLI uploads. Fresh SvelteKit/Vercel builds do not include them as static assets; the former `/data/analysis/` download URLs are no longer provided by new deployments. Rebuild before deploying prebuilt output so it reflects this change.
 
 To regenerate all nominal covariance matrices from their source blocks, run `python3 scripts/regenerate_covariance.py`. To reconcile missing EM/NASDAQ observations that already exist in another overlapping legacy block, run `node scripts/repair-legacy-block-data.mjs`. The unit suite independently checks the matrices against source observations and checks annual consistency across overlapping legacy blocks.
 

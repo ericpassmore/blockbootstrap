@@ -7,6 +7,7 @@ import {
 } from '$lib/server/portfolioOptimizer';
 
 const dataPath = `${process.cwd()}/static/data`;
+const analysisPath = `${process.cwd()}/data/analysis`;
 const csvRows = (path: string) =>
 	readFileSync(path, 'utf8')
 		.trim()
@@ -18,7 +19,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('portfolio covariance data', () => {
 	it('all 351 matrices match independent sample covariances, symmetry and reported standard deviations', () => {
-		const files = readdirSync(`${dataPath}/analysis`).filter((file) =>
+		const files = readdirSync(`${analysisPath}`).filter((file) =>
 			file.startsWith('variance_covariance_series_')
 		);
 		expect(files).toHaveLength(351);
@@ -26,10 +27,10 @@ describe('portfolio covariance data', () => {
 			const tag = file.replace('variance_covariance_series_', '').replace('.csv', '');
 			const blocks = tag.split('-').map(Number);
 			const observations = source.filter((row) => blocks.includes(Number(row[0])));
-			const [matrixHeader, ...matrixRows] = csvRows(`${dataPath}/analysis/${file}`);
+			const [matrixHeader, ...matrixRows] = csvRows(`${analysisPath}/${file}`);
 			const names = matrixHeader.slice(1);
 			const matrix = matrixRows.map((row) => row.slice(1).map(Number));
-			const stats = csvRows(`${dataPath}/analysis/nominal_mean_std_series_${tag}.csv`).slice(1);
+			const stats = csvRows(`${analysisPath}/nominal_mean_std_series_${tag}.csv`).slice(1);
 			expect(observations).toHaveLength(20);
 			for (let i = 0; i < names.length; i++) {
 				const xs = observations.map((row) => Number(row[header.indexOf(names[i])]));
@@ -56,9 +57,7 @@ describe('portfolio covariance data', () => {
 		'uses matching %s means and covariances',
 		(returnType) => {
 			const { meanReturns, covMatrix } = portfolioStatistics([19, 45], returnType);
-			const stats = csvRows(`${dataPath}/analysis/${returnType}_mean_std_series_19-45.csv`).slice(
-				1
-			);
+			const stats = csvRows(`${analysisPath}/${returnType}_mean_std_series_19-45.csv`).slice(1);
 			for (const [, name, mean, std] of stats) {
 				expect(meanReturns[name].mean).toBeCloseTo(Number(mean), 12);
 				expect(covMatrix[name][name]).toBeCloseTo(Number(std) ** 2, 12);

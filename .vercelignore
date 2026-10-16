@@ -1,0 +1,3 @@
+# Offline reference data and local generated assets are not deployment inputs.
+/data/analysis/
+/.svelte-kit/

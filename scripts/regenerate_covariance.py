@@ -13,10 +13,11 @@ from statistics import mean
 
 
 def regenerate():
-    data_dir = Path(__file__).resolve().parents[1] / "static" / "data"
+    root = Path(__file__).resolve().parents[1]
+    data_dir = root / "static" / "data"
     with (data_dir / "nominal_returns_10yr_blocks_1970on.csv").open() as source:
         observations = list(csv.DictReader(source))
-    paths = sorted((data_dir / "analysis").glob("variance_covariance_series_*.csv"))
+    paths = sorted((root / "data" / "analysis").glob("variance_covariance_series_*.csv"))
     for path in paths:
         first, second = map(int, path.stem.rsplit("_", 1)[1].split("-"))
         rows = [row for row in observations if int(row["Series"]) in (first, second)]
