@@ -9,10 +9,10 @@ export class powerLawReturnsFromDates {
 		endYear?: number
 	): number | undefined {
 		const genesisDate = cryptoAssetClass.getGenesisDate(symbol);
-		if (!genesisDate) return 1;
+		if (!genesisDate) return 0;
 
 		const powerLawParams = powerLawFormula.getPowerLawCalParams(symbol);
-		if (!powerLawParams.core) return 1;
+		if (!powerLawParams.core) return 0;
 
 		// Helper to calculate days since genesis to Dec 31 of given year
 		function daysSinceGenesis(year: number): number {
@@ -34,7 +34,7 @@ export class powerLawReturnsFromDates {
 			powerLawParams.core.coefficient_a * Math.pow(endDays, powerLawParams.core.exponent_b) +
 			powerLawParams.core.offset_c;
 
-		if (startPrice === 0) return 1;
+		if (startPrice <= 0 || !Number.isFinite(startPrice) || !Number.isFinite(endPrice)) return 0;
 
 		const percentage = ((endPrice - startPrice) / startPrice) * 100;
 		return percentage;

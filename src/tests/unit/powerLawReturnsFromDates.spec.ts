@@ -27,6 +27,6 @@ describe('powerLawReturnsFromDates', () => {
 
 	it('should return 0 for invalid symbol', () => {
 		const result = powerLawReturnsFromDates.percentageReturn('INVALID', 2022);
-		expect(result).toBe(1);
+		expect(result).toBe(0);
 	});
 });

@@ -1,0 +1,27 @@
+# Goals Extract
+
+- Task name: calculation-corrections
+- Iteration: v0
+- State: locked
+
+## Goals
+
+1. Correct covariance data and local optimizer integration, including return-type consistency and crypto cap validation.
+2. Correct concurrent historical initialization, crypto column mapping, missing-data eligibility, and overlapping observations.
+3. Preserve holdings and cost bases across blocks and use continuous crypto projection years.
+4. Correct coupon reinvestment/trades, dividend basis, and nominal-income taxation under inflation adjustment.
+5. Preserve and correctly label percentile paths while retaining detailed records only for displayed forecasts.
+6. Add offline regression tests against local data and run unit, type, formatting/lint, and build checks proportionate to the changes.
+
+## Non-goals
+
+- No deployment, commits, external messages, tax-policy overhaul, or unrelated authentication/database refactoring. Preserve pre-existing untracked foo.env without reading or changing it.
+
+## Success criteria
+
+- [G1] All precomputed nominal covariance matrices match independent source calculations; builder constraints and real covariance are tested.
+- [G2] Concurrent initialization produces exactly ten rows per block; SOL/XRP, flat missing crypto, noncrypto eligibility, and overlapping observations are tested locally.
+- [G3] Uninterrupted asset compounding matches local data across multiple blocks; thirty projected annual intervals are consecutive.
+- [G4] Independent coupon, rebalance, basis, and inflation/tax arithmetic fixtures pass.
+- [G5] Summary and detailed simulation agree; all percentile paths survive, table labels use full sequence identity, and at most fifty detailed paths are materialized.
+- [G6] Pinned checks run with results and any pre-existing limitations recorded in tasks/calculation-corrections/spec.md.

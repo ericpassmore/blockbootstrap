@@ -1,6 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import { ModelReturns, type Allocation } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
+import { BlockData } from '$lib/block';
+import { ConstantRateReturns } from '$lib/constantRateReturns';
+import { Taxes } from '$lib/taxes';
+
+// All coupon income is reinvested: next year's coupon is this year's coupon
+// multiplied by (1 + the reinvestment yield), including older bond lots.
+function expectedCouponTaxes(
+	startingAmount: number,
+	blockNumber: number,
+	key: 'treasury10Year' | 'baaCorp'
+): number {
+	const years = BlockData.getSeries(blockNumber)!;
+	let income =
+		(startingAmount *
+			ConstantRateReturns.getYield(BlockData.getHistoricalYear(blockNumber, years[0].year), key)) /
+		100;
+	let taxes = 0;
+	for (const row of years) {
+		taxes += new Taxes().calculateTaxes(income, 0, 0);
+		income *=
+			1 +
+			ConstantRateReturns.getYield(BlockData.getHistoricalYear(blockNumber, row.year), key) / 100;
+	}
+	return taxes;
+}
 
 describe('Taxes/Appreciation', () => {
 	it('treasury taxes are always greater than zero for the first 40 blocks', async () => {
@@ -110,10 +135,7 @@ describe('Taxes/Appreciation', () => {
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-		expect(
-			totalTaxes,
-			`Taxes for block 9 with 100% Treasuries should be close to $8682.34`
-		).toBeCloseTo(8682.34, 2);
+		expect(totalTaxes).toBeCloseTo(expectedCouponTaxes(startingAmount, 9, 'treasury10Year'), 8);
 		const terminatingValue = model.results[9].endValue;
 		expect(terminatingValue, `Terminating value for block 9 with 100% Treasuries`).toBeCloseTo(
 			242664.4,
@@ -131,10 +153,7 @@ describe('Taxes/Appreciation', () => {
 
 		// We expect some ordinary income from treasuries each year, which should result in taxes.
 		const totalTaxes = model.results.reduce((sum, yearResult) => sum + yearResult.taxes, 0);
-		expect(
-			totalTaxes,
-			`Total taxes for block 9 with 100% baaCorp should be close to $8682.34`
-		).toBeCloseTo(10112.48, 2);
+		expect(totalTaxes).toBeCloseTo(expectedCouponTaxes(startingAmount, 9, 'baaCorp'), 8);
 		const terminatingValue = model.results[9].endValue;
 		expect(terminatingValue, `Terminating value for block 9 with 100% baaCorp `).toBeCloseTo(
 			283910.25,
@@ -306,6 +325,8 @@ describe('Taxes/Appreciation', () => {
 		const optionsWithoutRebalance = new ForecastOptions();
 		const optionsWithRebalance = new ForecastOptions();
 		optionsWithRebalance.rebalanceOn();
+		optionsWithoutRebalance.cryptoHistoricalPricing();
+		optionsWithRebalance.cryptoHistoricalPricing();
 		const blockNumber = 40; // A block with significant bitcoin volatility
 
 		const modelWithoutRebalance = await ModelReturns.create(

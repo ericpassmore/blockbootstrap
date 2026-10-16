@@ -60,6 +60,9 @@ describe('GET /api/block/[blockNumber]', () => {
 			'sp500DividendYield',
 			'usSmallCapDividendYield',
 			'crypto:BTC',
+			'crypto:ETH',
+			'crypto:SOL',
+			'crypto:XRP',
 			'internationalEquity',
 			'emergingMarkets',
 			'nasdaq100'

@@ -32,6 +32,13 @@ export class AssetReturns {
 		this.annualPerformance.push({ year, value, returnPercentage });
 	}
 
+	/** Proportionally sell coupon-bearing principal when a position is rebalanced. */
+	public retainFraction(fraction: number): void {
+		for (const performance of this.annualPerformance) {
+			performance.value *= fraction;
+		}
+	}
+
 	/**
 	 * Retrieves amount invested in a specific year.
 	 * @param year The year of the performance data.

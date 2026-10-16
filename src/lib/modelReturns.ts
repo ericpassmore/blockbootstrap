@@ -47,6 +47,9 @@ export class ModelReturns {
 	public results: AnnualReturn[] = [];
 	public finalValue: number;
 	public startingAmount: number;
+	/** Nominal tax liabilities, reported separately from pre-tax portfolio values. */
+	public totalTaxes = 0;
+	public yearsElapsed = 0;
 	private taxModel: Taxes;
 	private assetCostBasis: AssetValues = {};
 	private incomeAssetTrackers: Map<string, AssetReturns> = new Map();
@@ -62,7 +65,8 @@ export class ModelReturns {
 		startingAmount: number,
 		allocations: Allocation[],
 		blockNumbers: number[],
-		options: ForecastOptions
+		options: ForecastOptions,
+		recordDetails: boolean = true
 	) {
 		this.startingAmount = startingAmount;
 		this.taxModel = new Taxes();
@@ -74,8 +78,9 @@ export class ModelReturns {
 		this.incomeAssetTrackers.set('baaCorp', new AssetReturns('baaCorp', 'BAA Corporate Bonds'));
 
 		let currentPortfolioValue = startingAmount;
-		let currentYearOffset = 0;
-		let blockNumberIdx = 0;
+		let inflationDeflator = 1;
+		const forecastStartYear = new Date().getFullYear();
+		const assetValues = this._initializeAssetValues(allocations, startingAmount);
 
 		for (const blockNumber of blockNumbers) {
 			const block = BlockData.getSeries(blockNumber);
@@ -84,15 +89,9 @@ export class ModelReturns {
 				continue;
 			}
 
-			let assetValues: AssetValues = this._initializeAssetValues(
-				allocations,
-				currentPortfolioValue
-			);
-
 			for (const yearData of block) {
-				const startOfYearValue = currentPortfolioValue;
+				const startOfYearValue = currentPortfolioValue / inflationDeflator;
 				const historicalReferenceYear = BlockData.getHistoricalYear(blockNumber, yearData.year);
-				const lastYear = historicalReferenceYear - 1;
 				let ordinaryIncome = 0;
 				let dividendIncome = 0;
 				let endOfYearValue = 0;
@@ -115,44 +114,55 @@ export class ModelReturns {
 						!options.cryptoUseHistoricalPrice
 					) {
 						// Use power law returns for crypto assets if option is false
-						assetReturnPercentage = this._cryptoPowerLawReturns(key, blockNumberIdx, yearData.year);
-					}
-					if (options.inflationAdjusted) {
-						const inflation = yearData.inflation || 0;
-						// exact formula: (1 + nominal) / (1 + inflation) - 1
-						assetReturnPercentage =
-							((1 + assetReturnPercentage / 100) / (1 + inflation / 100) - 1) * 100;
+						assetReturnPercentage = this._cryptoPowerLawReturns(
+							key,
+							forecastStartYear + this.yearsElapsed
+						);
 					}
 
+					let reinvestedIncome = 0;
 					switch (key) {
 						case 'TBill':
-							ordinaryIncome += assetStartValue * (assetReturnPercentage / 100);
+							reinvestedIncome = assetStartValue * (assetReturnPercentage / 100);
+							ordinaryIncome += reinvestedIncome;
 							break;
 						case 'baaCorp':
 						case 'treasury10Year':
-							ordinaryIncome += this._processIncomeAsset(
+							reinvestedIncome = this._processIncomeAsset(
 								key,
 								assetStartValue,
+								historicalReferenceYear
+							);
+							ordinaryIncome += reinvestedIncome;
+							this._addIncomeAssetPurchase(
+								this.incomeAssetTrackers.get(key)!,
 								historicalReferenceYear,
-								lastYear
+								reinvestedIncome
 							);
 							break;
 						case 'sp500':
-							dividendIncome += assetStartValue * ((yearData.sp500DividendYield || 0) / 100);
+							reinvestedIncome = assetStartValue * ((yearData.sp500DividendYield || 0) / 100);
+							dividendIncome += reinvestedIncome;
 							break;
 						case 'usSmallCap':
-							dividendIncome += assetStartValue * ((yearData.usSmallCapDividendYield || 0) / 100);
+							reinvestedIncome = assetStartValue * ((yearData.usSmallCapDividendYield || 0) / 100);
+							dividendIncome += reinvestedIncome;
 							break;
 					}
 
+					// Total returns already include these reinvestments; only their basis is added here.
+					this.assetCostBasis[key] += reinvestedIncome;
 					const valueAfterReturn = assetStartValue * (1 + assetReturnPercentage / 100);
 					assetValues[key] = valueAfterReturn;
 					endOfYearValue += valueAfterReturn;
 				}
 
 				if (options.rebalance) {
-					const rebalanceResult = this._annualRebalance(assetValues, allocations);
-					assetValues = rebalanceResult.assetValues;
+					const rebalanceResult = this._annualRebalance(
+						assetValues,
+						allocations,
+						historicalReferenceYear
+					);
 					capitalGains = rebalanceResult.capitalGains;
 					goldCapitalGains = rebalanceResult.goldCapitalGains;
 				} else {
@@ -166,64 +176,48 @@ export class ModelReturns {
 					goldCapitalGains
 				);
 
-				const growth = endOfYearValue - startOfYearValue;
+				this.totalTaxes += taxes;
+				this.yearsElapsed++;
+				currentPortfolioValue = endOfYearValue;
+				if (options.inflationAdjusted) {
+					inflationDeflator *= 1 + (yearData.inflation || 0) / 100;
+				}
+				const displayedEndValue = endOfYearValue / inflationDeflator;
 
-				const endOfYearPercentageAllocations: Allocation[] = allocations.map((asset) => ({
-					...asset,
-					value: endOfYearValue > 0 ? (assetValues[asset.key] / endOfYearValue) * 100 : 0
-				}));
-
-				this.results.push({
-					year: yearData.year + currentYearOffset, // Adjust year for concatenated blocks
-					startValue: startOfYearValue,
-					endValue: endOfYearValue,
-					growth: growth,
-					taxes: taxes,
-					percentageAllocations: endOfYearPercentageAllocations
-				});
-
-				currentPortfolioValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
+				if (recordDetails) {
+					this.results.push({
+						year: this.yearsElapsed,
+						startValue: startOfYearValue,
+						endValue: displayedEndValue,
+						growth: displayedEndValue - startOfYearValue,
+						taxes,
+						percentageAllocations: allocations.map((asset) => ({
+							...asset,
+							value: endOfYearValue > 0 ? (assetValues[asset.key] / endOfYearValue) * 100 : 0
+						}))
+					});
+				}
 			}
-			currentYearOffset += block.length; // Increment year offset for next block
-			blockNumberIdx++; // Increment to track position in the array of blocks
 		}
-		this.finalValue = currentPortfolioValue;
+		this.finalValue = currentPortfolioValue / inflationDeflator;
 	}
 
 	public static async create(
 		startingAmount: number,
 		allocations: Allocation[],
 		blockNumbers: number[],
-		options: ForecastOptions
+		options: ForecastOptions,
+		recordDetails: boolean = true
 	): Promise<ModelReturns> {
 		await ConstantRateReturns.init();
 		await BlockData.init();
-		return new ModelReturns(startingAmount, allocations, blockNumbers, options);
+		return new ModelReturns(startingAmount, allocations, blockNumbers, options, recordDetails);
 	}
 
-	/**
-	 * Calculates the weighted power law return for a set of cryptocurrency allocations
-	 * based on the current year adjusted by block number and year index.
-	 *
-	 * Uses the `powerLawReturnsFromDates` utility to get the percentage return for each crypto symbol.
-	 * If no return is found, defaults to 1 (100% return).
-	 *
-	 * @param assetName - Name of the asset.
-	 * @param blockNumber - The block number offset used to adjust the year for return calculation.
-	 * @param yearIndex - The year index within the block to adjust the year for return calculation.
-	 * @returns The return for this asset
-	 */
-	private _cryptoPowerLawReturns(
-		assetName: string,
-		blockNumber: number,
-		yearIndex: number
-	): number {
+	/** Return for one contiguous future calendar-year interval. */
+	private _cryptoPowerLawReturns(assetName: string, startYear: number): number {
 		const symbol = assetName.replace('crypto:', '').toUpperCase();
-		const powerLawReturn = powerLawReturnsFromDates.percentageReturn(
-			symbol,
-			new Date().getFullYear() + blockNumber + yearIndex
-		);
-		return powerLawReturn === undefined ? 0 : powerLawReturn;
+		return powerLawReturnsFromDates.percentageReturn(symbol, startYear) ?? 0;
 	}
 
 	private _initializeAssetValues(
@@ -241,7 +235,8 @@ export class ModelReturns {
 
 	private _annualRebalance(
 		yearEndValues: AssetValues,
-		targetAllocations: Allocation[]
+		targetAllocations: Allocation[],
+		historicalReferenceYear: number
 	): { capitalGains: number; goldCapitalGains: number; assetValues: AssetValues } {
 		const totalPortfolioValue = Object.values(yearEndValues).reduce((sum, value) => sum + value, 0);
 		let capitalGains = 0;
@@ -267,6 +262,9 @@ export class ModelReturns {
 					capitalGains += gain;
 				}
 
+				this.incomeAssetTrackers
+					.get(assetKey)
+					?.retainFraction(targetAmounts[assetKey] / yearEndValues[assetKey]);
 				this.assetCostBasis[assetKey] -= proportionalCostBasis;
 				yearEndValues[assetKey] -= amountToSell;
 				capitalPool += amountToSell;
@@ -279,6 +277,8 @@ export class ModelReturns {
 				const amountNeeded = targetAmounts[assetKey] - yearEndValues[assetKey];
 				const amountToBuy = Math.min(amountNeeded, capitalPool);
 
+				const tracker = this.incomeAssetTrackers.get(assetKey);
+				if (tracker) this._addIncomeAssetPurchase(tracker, historicalReferenceYear, amountToBuy);
 				yearEndValues[assetKey] += amountToBuy;
 				this.assetCostBasis[assetKey] = (this.assetCostBasis[assetKey] || 0) + amountToBuy;
 				capitalPool -= amountToBuy;
@@ -301,19 +301,13 @@ export class ModelReturns {
 	private _processIncomeAsset(
 		assetKey: IncomeAssetKey,
 		assetStartValue: number,
-		historicalReferenceYear: number,
-		lastYear: number
+		historicalReferenceYear: number
 	): number {
 		const tracker = this.incomeAssetTrackers.get(assetKey);
 		if (!tracker) return 0; // Should not happen with correct setup
 
 		if (!tracker.hasRecords()) {
 			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, assetStartValue);
-			this.assetCostBasis[assetKey] = assetStartValue;
-		} else {
-			const income = tracker.getChangeInValue(lastYear);
-			this._addIncomeAssetPurchase(tracker, historicalReferenceYear, income);
-			this.assetCostBasis[assetKey] += income;
 		}
 		return tracker.totalIncome();
 	}
@@ -331,7 +325,7 @@ export class ModelReturns {
 	}
 
 	public calculateCAGR(): number {
-		if (this.startingAmount <= 0 || this.results.length === 0) {
+		if (this.startingAmount <= 0 || this.yearsElapsed === 0) {
 			return 0; // Cannot calculate CAGR under these conditions.
 		}
 		// If the final value is negative, CAGR is not mathematically well-defined for real numbers.
@@ -340,6 +334,6 @@ export class ModelReturns {
 			return (this.finalValue - this.startingAmount) / this.startingAmount;
 		}
 
-		return Math.pow(this.finalValue / this.startingAmount, 1 / this.results.length) - 1;
+		return Math.pow(this.finalValue / this.startingAmount, 1 / this.yearsElapsed) - 1;
 	}
 }

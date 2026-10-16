@@ -1,21 +1,22 @@
 import { BlockData } from '$lib/block';
 import { ModelReturns, type Allocation, type AnnualReturn } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
-import { db } from '$lib/server/db'; // your Drizzle DB instance
-import { cryptoAssetClass } from '$lib/server/cryptoAssetClass';
-import { powerLawFormula } from '$lib/server/powerLawFormula';
+import { ConstantRateReturns } from '$lib/constantRateReturns';
 
 interface PercentileResult {
 	value: number;
 	seriesNumbers: number[];
 }
 
-export interface Forecast {
+interface ForecastSummary {
 	blockNumbers: number[]; // Changed from blockNumber to blockNumbers
-	results: AnnualReturn[]; // YearlyReturn[]
 	taxes: number;
 	finalValue: number;
 	cagr: number;
+}
+
+export interface Forecast extends ForecastSummary {
+	results: AnnualReturn[];
 }
 
 export interface StatisticsResult {
@@ -39,8 +40,14 @@ export class ForecastService {
 	public q3Series: number[];
 	public averageCAGR: number;
 	public finalValueStdDev: number;
+	public scenarioCount: number;
 
-	constructor(startingAmount: number, forecasts: Forecast[], statistics: StatisticsResult) {
+	constructor(
+		startingAmount: number,
+		forecasts: Forecast[],
+		statistics: StatisticsResult,
+		summaries: ForecastSummary[] = forecasts
+	) {
 		this.startingAmount = startingAmount;
 
 		this.median = statistics.medianResult.value;
@@ -50,8 +57,9 @@ export class ForecastService {
 		this.q3 = statistics.q3Result.value;
 		this.q3Series = statistics.q3Result.seriesNumbers;
 
-		this.averageCAGR = this.simpleArithmaticMean(forecasts.map((f) => f.cagr));
-		this.finalValueStdDev = this.standardDeviation(forecasts.map((f) => f.finalValue));
+		this.averageCAGR = this.simpleArithmaticMean(summaries.map((f) => f.cagr));
+		this.finalValueStdDev = this.standardDeviation(summaries.map((f) => f.finalValue));
+		this.scenarioCount = summaries.length;
 
 		this.forecasts = this.reorderForecasts(forecasts, statistics);
 	}
@@ -70,62 +78,53 @@ export class ForecastService {
 
 		const allForecasts = await instance.buildAllForecasts(allocations, options);
 		const statistics = instance.calculateStatistics(allForecasts);
+		const currentYear = new Date().getFullYear();
+		const displayed = instance
+			.reorderForecasts(allForecasts, statistics)
+			.map((summary): Forecast => {
+				const model = new ModelReturns(startingAmount, allocations, summary.blockNumbers, options);
+				for (const result of model.results) result.year += currentYear;
+				return { ...summary, results: model.results };
+			});
 
-		return new ForecastService(startingAmount, allForecasts, statistics);
+		return new ForecastService(startingAmount, displayed, statistics, allForecasts);
 	}
 
 	private async buildAllForecasts(
 		allocations: Allocation[],
 		options: ForecastOptions
-	): Promise<Forecast[]> {
-		const allForecasts: Forecast[] = [];
-		await BlockData.init();
-		await cryptoAssetClass.loadAssets(db);
-		await powerLawFormula.loadFits(db);
-		const excludeIncompleteBlocks = true;
-		const numberOfBlocks = BlockData.getAllData(excludeIncompleteBlocks).size;
-		const blockCombinations: number[][] = [];
-
-		if (options.returnWindow === 10) {
-			for (let i = 1; i <= numberOfBlocks; i++) {
-				blockCombinations.push([i]);
-			}
-		} else if (options.returnWindow === 20) {
-			for (let i = 1; i <= numberOfBlocks; i++) {
-				for (let j = i + 1; j <= numberOfBlocks; j++) {
-					if (i !== j) {
-						blockCombinations.push([i, j]);
-					}
-				}
-			}
-		} else if (options.returnWindow === 30) {
-			for (let i = 1; i <= numberOfBlocks; i++) {
-				for (let j = i + 1; j <= numberOfBlocks; j++) {
-					for (let k = j + 1; k <= numberOfBlocks; k++) {
-						if (i !== j && i !== k && j !== k) {
-							blockCombinations.push([i, j, k]);
-						}
-					}
-				}
-			}
+	): Promise<ForecastSummary[]> {
+		const allForecasts: ForecastSummary[] = [];
+		await Promise.all([BlockData.init(), ConstantRateReturns.init()]);
+		if (
+			!options.cryptoUseHistoricalPrice &&
+			allocations.some((asset) => asset.value > 0 && asset.key.startsWith('crypto:'))
+		) {
+			const [{ db }, { cryptoAssetClass }, { powerLawFormula }] = await Promise.all([
+				import('$lib/server/db'),
+				import('$lib/server/cryptoAssetClass'),
+				import('$lib/server/powerLawFormula')
+			]);
+			await Promise.all([cryptoAssetClass.loadAssets(db), powerLawFormula.loadFits(db)]);
 		}
-		for (const blockNumbers of blockCombinations) {
-			const model = await ModelReturns.create(
+		const eligibleBlocks = BlockData.getEligibleBlockNumbers(
+			allocations.filter((asset) => asset.value > 0).map((asset) => asset.key)
+		);
+		const blocksPerForecast = options.returnWindow / 10;
+		if (eligibleBlocks.length < blocksPerForecast) {
+			throw new Error('Not enough complete historical blocks for the selected assets and window.');
+		}
+		for (const blockNumbers of this.blockCombinations(eligibleBlocks, blocksPerForecast)) {
+			const model = new ModelReturns(
 				this.startingAmount,
 				allocations,
 				blockNumbers,
-				options
+				options,
+				false
 			);
-			const currentYear = new Date().getFullYear();
-			let taxes = 0;
-			for (const result of model.results) {
-				result.year = result.year + currentYear;
-				taxes += result.taxes;
-			}
 			allForecasts.push({
 				blockNumbers: blockNumbers,
-				results: model.results,
-				taxes: taxes,
+				taxes: model.totalTaxes,
 				finalValue: model.finalValue,
 				cagr: model.calculateCAGR() * 100
 			});
@@ -133,12 +132,23 @@ export class ForecastService {
 		return allForecasts;
 	}
 
-	private arraysEqual(a: number[], b: number[]): boolean {
-		if (a.length !== b.length) return false;
-		return a.every((val, i) => val === b[i]);
+	/** Yield existing chronological combinations without retaining the entire combination list. */
+	private *blockCombinations(
+		blocks: number[],
+		count: number,
+		start = 0,
+		prefix: number[] = []
+	): Generator<number[]> {
+		if (count === 0) {
+			yield prefix;
+			return;
+		}
+		for (let index = start; index <= blocks.length - count; index++) {
+			yield* this.blockCombinations(blocks, count - 1, index + 1, [...prefix, blocks[index]]);
+		}
 	}
 
-	private calculateStatistics(allForecasts: Forecast[]): StatisticsResult {
+	private calculateStatistics(allForecasts: ForecastSummary[]): StatisticsResult {
 		const sortedForecasts = [...allForecasts].sort((a, b) => a.finalValue - b.finalValue);
 		const medianResult = this.getPercentileWithSeries(sortedForecasts, 0.5);
 		const q1Result = this.getPercentileWithSeries(sortedForecasts, 0.25);
@@ -147,7 +157,7 @@ export class ForecastService {
 	}
 
 	private getPercentileWithSeries(
-		sortedForecasts: Forecast[],
+		sortedForecasts: ForecastSummary[],
 		percentile: number
 	): PercentileResult {
 		const pos = (sortedForecasts.length - 1) * percentile;
@@ -157,6 +167,7 @@ export class ForecastService {
 	}
 
 	private simpleArithmaticMean(values: number[]): number {
+		if (values.length === 0) return 0;
 		const sum = values.reduce((acc, val) => acc + val, 0);
 		return sum / values.length;
 	}
@@ -169,56 +180,29 @@ export class ForecastService {
 		return Math.sqrt(variance);
 	}
 
-	private reorderForecasts(allForecasts: Forecast[], statistics: StatisticsResult): Forecast[] {
-		const specialSeriesNumbers = new Set([
-			statistics.q1Result.seriesNumbers,
-			statistics.medianResult.seriesNumbers,
-			statistics.q3Result.seriesNumbers
-		]);
-		const regularForecasts = allForecasts.filter(
-			(f) => ![...specialSeriesNumbers].some((special) => this.arraysEqual(f.blockNumbers, special))
+	private reorderForecasts<T extends ForecastSummary>(
+		allForecasts: T[],
+		statistics: StatisticsResult
+	): T[] {
+		const key = (blocks: number[]) => blocks.join(',');
+		const remaining = new Map(
+			allForecasts.map((forecast) => [key(forecast.blockNumbers), forecast])
 		);
-		const q1Forecast = allForecasts.find((f) =>
-			this.arraysEqual(f.blockNumbers, statistics.q1Result.seriesNumbers)
-		);
-		const medianForecast = allForecasts.find((f) =>
-			this.arraysEqual(f.blockNumbers, statistics.medianResult.seriesNumbers)
-		);
-		const q3Forecast = allForecasts.find((f) =>
-			this.arraysEqual(f.blockNumbers, statistics.q3Result.seriesNumbers)
-		);
-		const appendedSeries = new Set();
-		const firstForecasts: Forecast[] = [];
-
-		if (q1Forecast) {
-			firstForecasts.push(q1Forecast);
-			appendedSeries.add(q1Forecast.blockNumbers[0]);
-		}
-		if (medianForecast && !appendedSeries.has(medianForecast.blockNumbers[0])) {
-			firstForecasts.push(medianForecast);
-			appendedSeries.add(medianForecast.blockNumbers[0]);
-		}
-		if (q3Forecast && !appendedSeries.has(q3Forecast.blockNumbers[0])) {
-			firstForecasts.push(q3Forecast);
-		}
-		let finalRegularForecasts = regularForecasts;
-
-		// Thin forecasts if there are more than 50 regular forecasts
-		if (regularForecasts.length > 50) {
-			const sortedRegularForecasts = [...regularForecasts].sort(
-				(a, b) => a.finalValue - b.finalValue
-			);
-			const interval = Math.floor(sortedRegularForecasts.length / (50 - firstForecasts.length)); // Adjust target count for already included special forecasts
-			finalRegularForecasts = [];
-			for (let i = 0; i < sortedRegularForecasts.length; i += interval) {
-				if (finalRegularForecasts.length < 50 - firstForecasts.length) {
-					finalRegularForecasts.push(sortedRegularForecasts[i]);
-				} else {
-					break;
-				}
+		const selected: T[] = [];
+		for (const result of [statistics.q1Result, statistics.medianResult, statistics.q3Result]) {
+			const sequence = key(result.seriesNumbers);
+			const forecast = remaining.get(sequence);
+			if (forecast) {
+				selected.push(forecast);
+				remaining.delete(sequence);
 			}
 		}
-
-		return [...firstForecasts, ...finalRegularForecasts];
+		const regular = [...remaining.values()].sort((a, b) => a.finalValue - b.finalValue);
+		const available = 50 - selected.length;
+		if (regular.length <= available) return [...selected, ...regular];
+		for (let index = 0; index < available; index++) {
+			selected.push(regular[Math.round((index * (regular.length - 1)) / (available - 1))]);
+		}
+		return selected;
 	}
 }

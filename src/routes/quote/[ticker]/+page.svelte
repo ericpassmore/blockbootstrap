@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from '../$types';
+	import type { PageData } from './$types';
 	import type { WeeklyData } from '$lib/polygon';
 
 	export let data: PageData;
@@ -38,7 +38,7 @@
 	{#if !data.success}
 		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 			<strong>Error:</strong>
-			{data.error || 'Failed to load data'}
+			{('error' in data && data.error) || 'Failed to load data'}
 		</div>
 	{:else if weeklyData.length === 0}
 		<div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
