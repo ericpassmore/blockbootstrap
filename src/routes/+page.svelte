@@ -2,6 +2,7 @@
 	import type { FormData } from '$lib/types/formData';
 	import PortfolioForm from '$lib/component/PortfolioForm.svelte';
 	import Instructions from '$lib/component/Instructions.svelte';
+	import { forecastLabels, sameSeries } from '$lib/forecastDisplay';
 
 	import { onDestroy, onMount } from 'svelte';
 	import { type ChartOptions, Chart } from 'chart.js/auto'; // Simplified import for vanilla Chart.js
@@ -78,22 +79,9 @@
 		const legendQuartile = getCSSVar('--legend-quartile-color');
 		const legendComplete = getCSSVar('--legend-complete-color');
 
-		// all arrays should have same length
-		if (
-			blockNumber.length === medianBlockNum.length &&
-			blockNumber.length === q1BlockNum.length &&
-			q3BlockNum.length === q3BlockNum.length
-		) {
-			if (blockNumber.every((val, i) => val === medianBlockNum[i])) {
-				return legendMedian;
-			}
-			if (blockNumber.every((val, i) => val === q1BlockNum[i])) {
-				return legendQuartile;
-			}
-			if (blockNumber.every((val, i) => val === q3BlockNum[i])) {
-				return legendQuartile;
-			}
-		}
+		if (sameSeries(blockNumber, medianBlockNum)) return legendMedian;
+		if (sameSeries(blockNumber, q1BlockNum) || sameSeries(blockNumber, q3BlockNum))
+			return legendQuartile;
 		return legendComplete;
 	}
 
@@ -220,67 +208,32 @@
 					<tr>
 						<th>Bock Series</th>
 						<th>End Value</th>
-						<th>Taxes</th>
+						<th>Taxes (nominal)</th>
 						<th>CAGR</th>
 					</tr>
 				</thead>
 				<tbody>
-					{#each form.forecasts as blockResult, index (blockResult.blockNumbers.join('-'))}
-						{#if index === 0}
-							<tr class="q1-row">
-								<td>
-									{blockResult.blockNumbers.join(', ')}
-									<span class="label-tooltip" title="Conservative estimate"
-										><span class="material-symbols-outlined">info</span>
-										<small>conservative estimate</small></span
-									>
-								</td>
-								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
-								<td>{currencyFormatter.format(blockResult.taxes)}</td>
-								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
-									{blockResult.cagr.toFixed(2)}%
-								</td>
-							</tr>
-						{:else if index === 1}
-							<tr class="median-row">
-								<td>
-									{blockResult.blockNumbers.join(', ')}
-									<span class="label-tooltip" title="Most likely & median"
-										><span class="material-symbols-outlined">info</span>
-										<small>most likely & median</small></span
-									>
-								</td>
-								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
-								<td>{currencyFormatter.format(blockResult.taxes)}</td>
-								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
-									{blockResult.cagr.toFixed(2)}%
-								</td>
-							</tr>
-						{:else if index === 2}
-							<tr class="q3-row">
-								<td>
-									{blockResult.blockNumbers.join(', ')}
-									<span class="label-tooltip" title="Optimistic estimate"
-										><span class="material-symbols-outlined">info</span>
-										<small>optimistic estimate</small></span
-									>
-								</td>
-								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
-								<td>{currencyFormatter.format(blockResult.taxes)}</td>
-								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
-									{blockResult.cagr.toFixed(2)}%
-								</td>
-							</tr>
-						{:else}
-							<tr>
-								<td>{blockResult.blockNumbers.join(', ')}</td>
-								<td>{currencyFormatter.format(blockResult.finalValue)}</td>
-								<td>{currencyFormatter.format(blockResult.taxes)}</td>
-								<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
-									{blockResult.cagr.toFixed(2)}%
-								</td>
-							</tr>
-						{/if}
+					{#each form.forecasts as blockResult (blockResult.blockNumbers.join('-'))}
+						<tr
+							class:q1-row={sameSeries(blockResult.blockNumbers, form.q1Series)}
+							class:median-row={sameSeries(blockResult.blockNumbers, form.medianSeries)}
+							class:q3-row={sameSeries(blockResult.blockNumbers, form.q3Series)}
+						>
+							<td>
+								{blockResult.blockNumbers.join(', ')}
+								{#each forecastLabels(blockResult.blockNumbers, form) as label (label)}
+									<span class="label-tooltip" title={label}>
+										<span class="material-symbols-outlined">info</span>
+										<small>{label}</small>
+									</span>
+								{/each}
+							</td>
+							<td>{currencyFormatter.format(blockResult.finalValue)}</td>
+							<td>{currencyFormatter.format(blockResult.taxes)}</td>
+							<td class:positive={blockResult.cagr >= 0} class:negative={blockResult.cagr < 0}>
+								{blockResult.cagr.toFixed(2)}%
+							</td>
+						</tr>
 					{/each}
 				</tbody>
 			</table>

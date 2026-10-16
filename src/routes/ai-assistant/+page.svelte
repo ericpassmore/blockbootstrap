@@ -4,7 +4,7 @@
 	import DOMPurify from 'dompurify';
 
 	let inputValue: string = $state('');
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement>();
 	let apiResponse: string[] = $state([]);
 
 	let isLoggedIn = $state(false);
@@ -13,10 +13,11 @@
 	});
 
 	async function adjustHeight() {
-		if (textareaElement) {
+		const textarea = textareaElement;
+		if (textarea) {
 			await tick();
-			textareaElement.style.height = 'auto';
-			textareaElement.style.height = textareaElement.scrollHeight + 'px';
+			textarea.style.height = 'auto';
+			textarea.style.height = textarea.scrollHeight + 'px';
 		}
 	}
 
@@ -82,7 +83,9 @@
 		}
 	}
 
-	$effect(() => adjustHeight());
+	$effect(() => {
+		void adjustHeight();
+	});
 </script>
 
 <h1>AI Assistant</h1>

@@ -12,7 +12,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"test:unit": "npx cross-env ENVIRONMENT=TEST vitest run tests/{api,db,unit}",
+		"test:unit": "cross-env ENVIRONMENT=TEST vitest run --project server src/tests/unit",
 		"test:e2e": "npx cross-env ENVIRONMENT=TEST vitest run tests/e2e",
 		"test:all": "npx cross-env ENVIRONMENT=TEST vitest run tests"
 	},
@@ -54,6 +54,7 @@
 		"import": "^0.0.6",
 		"marked": "^16.2.0",
 		"pg": "^8.16.3",
-		"postgres": "^3.4.7"
+		"postgres": "^3.4.7",
+		"quadprog": "^1.6.1"
 	}
 }

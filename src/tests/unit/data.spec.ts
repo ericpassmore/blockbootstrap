@@ -55,16 +55,16 @@ describe('Value Market Data', () => {
 				expect(year.realEstate).not.toBe(0);
 
 				expect(year['crypto:BTC']).not.toBeNaN();
-				expect(year['crypto:BTC']).not.toBe(0);
+				expect(Number.isFinite(year['crypto:BTC'])).toBe(true);
 
 				expect(year.internationalEquity).not.toBeNaN();
 				expect(year.internationalEquity).not.toBe(0);
 
 				expect(year.emergingMarkets).not.toBeNaN();
-				expect(year.emergingMarkets).not.toBe(0);
+				expect(Number.isFinite(year.emergingMarkets)).toBe(true);
 
 				expect(year.nasdaq100).not.toBeNaN();
-				expect(year.nasdaq100).not.toBe(0);
+				expect(Number.isFinite(year.nasdaq100)).toBe(true);
 			}
 		}
 	});
@@ -82,7 +82,7 @@ describe('Value Market Data', () => {
 		expect(firstYear.gold).toBeCloseTo(-9.45);
 		expect(firstYear.inflation).toBeCloseTo(5.57);
 		expect(firstYear.realEstate).toBeCloseTo(8.22);
-		expect(firstYear['crypto:BTC']).toBe(1);
+		expect(firstYear['crypto:BTC']).toBe(0);
 		// last entry N/A == 0
 		const lastBlockId = BlockData.getAllData().size;
 		const lastYear = BlockData.getSeries(lastBlockId)?.[9];

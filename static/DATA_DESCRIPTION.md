@@ -12,6 +12,10 @@ This document describes the data contained in the following files:
 
 ## Naming Conventions and File Series
 
+The application bundles these local CSV files for calculations. Portfolio optimization computes means and sample covariance from the same selected return type (nominal, real, or excess); it does not combine real expected returns with nominal covariance.
+
+To regenerate all nominal covariance matrices from their source blocks, run `python3 scripts/regenerate_covariance.py`. To reconcile missing EM/NASDAQ observations that already exist in another overlapping legacy block, run `node scripts/repair-legacy-block-data.mjs`. The unit suite independently checks the matrices against source observations and checks annual consistency across overlapping legacy blocks.
+
 - The files `nominal_returns_10yr_blocks_1970on.csv`, `real_returns_10yr_blocks_1970on.csv`, and `risk_free_returns_10yr_blocks_1970on.csv` contain return data for various asset classes, spanning from 1970 onwards, organized in 10-year blocks. These represent nominal returns, real returns, and risk-free returns respectively.
 - The `variance_covariance_series_*.csv` files represent batches of variance-covariance matrices for different series of assets. Each file covers a batch of series, indicated by the suffix (e.g., `1_10` covers series 1 to 10).
 - The `mean_std_series_*.csv` files contain batches of mean returns and standard deviations for the same series of assets as the variance-covariance files, also broken into batches by series number.

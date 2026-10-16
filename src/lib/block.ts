@@ -1,10 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import marketDataCsv from '../../static/data/Fifty10YearBlocksFrom1970.csv?raw';
 
-/**
- * Defines the structure for a single data point of market information for a year.
- * This interface is exported to be usable by other parts of the application.
- */
 export interface MarketData {
 	year: number;
 	sp500: number;
@@ -26,137 +21,124 @@ export interface MarketData {
 	nasdaq100: number;
 }
 
-/**
- * A service class to load, parse, and provide access to market data from a CSV file.
- * This encapsulates the data loading logic and provides a clean API for accessing the data.
- */
+const columns = {
+	sp500: 'S&P 500 (includes dividends)',
+	usSmallCap: 'US Small cap (bottom decile)',
+	TBill: '3-month T.Bill',
+	treasury10Year: 'US T. Bond (10-year)',
+	baaCorp: 'Baa Corporate Bond',
+	realEstate: 'Real Estate',
+	gold: 'Gold*',
+	inflation: 'inflation',
+	sp500DividendYield: 'SP500 Dividend Yield',
+	'crypto:BTC': 'Bitcoin*',
+	'crypto:ETH': 'Ethereum',
+	'crypto:XRP': 'XRP',
+	'crypto:SOL': 'SOL',
+	internationalEquity: 'International Stocks',
+	emergingMarkets: 'Emerging Markets',
+	nasdaq100: 'NASDAQ 100'
+} as const;
+
+/** Local historical returns, stored in percentage points. */
 export class BlockData {
 	private static marketDataMap: Map<number, MarketData[]> = new Map();
 	private static initialized = false;
+	private static initialization: Promise<void> | undefined;
 	private static incompleteBlocks: number[] = [];
+	private static missingAssets: Map<number, Set<keyof MarketData>> = new Map();
 
-	/**
-	 * Initializes the service and loads data from the provided CSV file path.
-	 * The data file is expected to be at '/data/Fifty10YearBlocksFrom1970.csv' relative to this file.
-	 */
-	public static async init(envTarget: string = 'PROD'): Promise<void> {
+	/** Bundles local CSV data; the optional environment argument is retained for callers. */
+	public static init(): Promise<void>;
+	public static init(environment: string): Promise<void>;
+	public static async init(): Promise<void> {
 		if (this.initialized) return;
-
+		if (!this.initialization) {
+			this.initialization = Promise.resolve().then(() => this.load(marketDataCsv));
+		}
 		try {
-			let fileContent: string;
-
-			if (envTarget === 'PROD') {
-				// Browser/SvelteKit environment
-				const response = await fetch(
-					'https://blockbootstrap.com/data/Fifty10YearBlocksFrom1970.csv'
-				);
-				fileContent = await response.text();
-			} else {
-				// Node/Vitest environment
-				const filePath = path.join('static/data', 'Fifty10YearBlocksFrom1970.csv');
-				fileContent = fs.readFileSync(filePath, 'utf-8');
-			}
-
-			const lines = fileContent.split('\n').slice(1); // Split by line and skip header
-
-			for (const line of lines) {
-				const trimmedLine = line.trim();
-				if (!trimmedLine) {
-					continue; // Skip empty lines
-				}
-
-				// Replace any '#N/A' value with '0' before splitting into columns
-				const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
-				const seriesKey = this.safeParseInt(values[0]);
-				// mark incomplete
-				if (this.hasIncompleteData(trimmedLine)) {
-					this.incompleteBlocks.push(seriesKey);
-				}
-
-				// could not find historical dividend yield for small cap so made a constant
-				const marketData: MarketData = {
-					year: this.safeParseInt(values[1]),
-					sp500: this.safeParsePercentage(values[2]),
-					usSmallCap: this.safeParsePercentage(values[3]),
-					TBill: this.safeParsePercentage(values[4]),
-					treasury10Year: this.safeParsePercentage(values[5]),
-					baaCorp: this.safeParsePercentage(values[6]),
-					realEstate: this.safeParsePercentage(values[7]),
-					gold: this.safeParsePercentage(values[8]),
-					inflation: this.safeParsePercentage(values[9]),
-					sp500DividendYield: this.safeParsePercentage(values[10]),
-					usSmallCapDividendYield: 1.5,
-					'crypto:BTC': this.safeParsePercentage(values[11]),
-					'crypto:ETH': this.safeParsePercentage(values[15]),
-					'crypto:SOL': this.safeParsePercentage(values[16]),
-					'crypto:XRP': this.safeParsePercentage(values[17]),
-					internationalEquity: this.safeParsePercentage(values[12]),
-					emergingMarkets: this.safeParsePercentage(values[13]),
-					nasdaq100: this.safeParsePercentage(values[14])
-				};
-
-				const seriesData = this.marketDataMap.get(seriesKey) || [];
-				seriesData.push(marketData);
-				this.marketDataMap.set(seriesKey, seriesData);
-			}
-
-			this.initialized = true;
-		} catch (error) {
-			console.error(
-				`Error reading or parsing CSV file at /data/Fifty10YearBlocksFrom1970.csv:`,
-				error
-			);
+			await this.initialization;
+		} finally {
+			this.initialization = undefined;
 		}
 	}
 
-	/**
-	 * Determins if a block has incomplete data
-	 * @params an array of values for this year
-	 * @returns boolean indicated the block has incomplete data
-	 */
-	private static hasIncompleteData(line: string) {
-		let count = 0;
-		for (const value of line.split(',')) {
-			if (value.trim() === '#N/A') {
-				count++;
+	private static load(fileContent: string): void {
+		const [header, ...lines] = fileContent.trim().split(/\r?\n/);
+		const headers = header.split(',').map((value) => value.trim());
+		const required = ['Series', 'Year', ...Object.values(columns)];
+		for (const name of required) {
+			if (headers.filter((value) => value === name).length !== 1) {
+				throw new Error(`Missing or duplicate market data column: ${name}`);
 			}
 		}
-		return count >= 8;
+		const data = new Map<number, MarketData[]>();
+		const missing = new Map<number, Set<keyof MarketData>>();
+		const incomplete = new Set<number>();
+		for (const line of lines) {
+			if (!line.trim()) continue;
+			const values = line.split(',').map((value) => value.trim());
+			if (values.length !== headers.length) throw new Error('Malformed market data row');
+			const series = Number(values[headers.indexOf('Series')]);
+			const year = Number(values[headers.indexOf('Year')]);
+			if (
+				!Number.isInteger(series) ||
+				series < 1 ||
+				!Number.isInteger(year) ||
+				year < 1 ||
+				year > 10
+			) {
+				throw new Error('Invalid market data series or year');
+			}
+			const marketData = { year, usSmallCapDividendYield: 1.5 } as MarketData;
+			const missingInBlock = missing.get(series) ?? new Set<keyof MarketData>();
+			for (const [key, name] of Object.entries(columns)) {
+				const raw = values[headers.indexOf(name)];
+				const parsed = raw === '' || raw === '#N/A' ? NaN : Number(raw.replace(/%$/, ''));
+				const asset = key as keyof typeof columns;
+				marketData[asset] = Number.isFinite(parsed) ? parsed : 0;
+				if (!Number.isFinite(parsed)) missingInBlock.add(asset);
+			}
+			missing.set(series, missingInBlock);
+			// A wholly unavailable future year makes a block incomplete for every portfolio.
+			if (values.filter((value) => value === '#N/A').length >= 8) incomplete.add(series);
+			const block = data.get(series) ?? [];
+			if (block.some((row) => row.year === year)) throw new Error('Duplicate market data year');
+			block.push(marketData);
+			data.set(series, block);
+		}
+		if (data.size === 0) throw new Error('Market data contains no blocks');
+		for (const [series, block] of data) {
+			block.sort((a, b) => a.year - b.year);
+			if (block.length !== 10) incomplete.add(series);
+		}
+		// Publish only after every row has parsed successfully.
+		this.marketDataMap = data;
+		this.missingAssets = missing;
+		this.incompleteBlocks = [...incomplete];
+		this.initialized = true;
 	}
 
-	/**
-	 * Retrieves the entire map of market data.
-	 * @returns A Map where the key is the series number and the value is an array of MarketData.
-	 */
 	public static getAllData(excludeIncompleteBlocks: boolean = false): Map<number, MarketData[]> {
-		if (!excludeIncompleteBlocks) {
-			return this.marketDataMap;
-		}
-		const filteredMap = new Map<number, MarketData[]>();
-		for (const [key, value] of this.marketDataMap.entries()) {
-			if (!this.incompleteBlocks.includes(key)) {
-				filteredMap.set(key, value);
-			}
-		}
-		return filteredMap;
+		if (!excludeIncompleteBlocks) return this.marketDataMap;
+		return new Map([...this.marketDataMap].filter(([key]) => !this.incompleteBlocks.includes(key)));
 	}
 
-	/**
-	 * Retrieves a specific series of market data by its key.
-	 * @param key The numeric key for the series.
-	 * @returns An array of MarketData for the series, or undefined if not found.
+	/** Selected noncrypto assets must have observations for all ten years.
+	 * Missing crypto history intentionally earns a flat nominal return.
+	 * Callers should pass only asset keys with nonzero portfolio allocations.
 	 */
+	public static getEligibleBlockNumbers(assetKeys: (keyof MarketData)[]): number[] {
+		const required = assetKeys.filter((key) => !key.startsWith('crypto:'));
+		return [...this.getAllData(true).keys()].filter((series) =>
+			required.every((key) => !this.missingAssets.get(series)?.has(key))
+		);
+	}
+
 	public static getSeries(key: number): MarketData[] | undefined {
 		return this.marketDataMap.get(key);
 	}
 
-	/**
-	 * calculated a historical year based on block number and block index
-	 * @param blockNumber The 1-based block number (e.g., 1-50).
-	 * @param yearIndex The 1-based index within the block (e.g., 1-10).
-	 * @returns historical 4 digit year
-	 * @throws {Error} if blockNumber or yearIndex are less than 1.
-	 */
 	public static getHistoricalYear(blockNumber: number, yearIndex: number): number {
 		if (blockNumber < 1 || yearIndex < 1) {
 			throw new Error('blockNumber and yearIndex must be 1-based and cannot be less than 1.');
@@ -164,34 +146,7 @@ export class BlockData {
 		return 1970 + (blockNumber - 1) + (yearIndex - 1);
 	}
 
-	/**
-	 * Parses a string that should contain a number.
-	 * @param value The string value to parse
-	 * @returns The parsed floating-point number. Defaults to 0 when parsing error
-	 */
-	private static safeParseInt = (val: string) => {
-		const parsed = parseInt(val, 10);
-		return isNaN(parsed) ? 0 : parsed;
-	};
-
-	/**
-	 * Parses a string that may contain a percentage sign and returns it as a float.
-	 * @param value The string value to parse (e.g., "15.55%" or "-5.2%").
-	 * @returns The parsed floating-point number.
-	 */
-	private static safeParsePercentage = (value: string) => {
-		if (typeof value !== 'string') {
-			return 1;
-		}
-		const parsed = parseFloat(value.replace('%', ''));
-		return isNaN(parsed) ? 1 : parsed;
-	};
-
-	/**
-	 * Return incomplete blocks
-	 * @returns number[] list of deduped blocks
-	 */
 	public static getIncompleteBlocks(): number[] {
-		return [...new Set(this.incompleteBlocks)];
+		return [...this.incompleteBlocks];
 	}
 }

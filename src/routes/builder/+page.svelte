@@ -5,6 +5,7 @@
 	let cryptoLimit: number = 3;
 	let isSubmitting = false;
 	let allocations: Allocation[] | null = null;
+	let error: string | null = null;
 
 	let startYear: number = 1988;
 	let endYear: number = 2024;
@@ -17,10 +18,14 @@
 		method="POST"
 		use:enhance={() => {
 			isSubmitting = true;
+			error = null;
 			return async ({ result }) => {
 				isSubmitting = false;
 				if (result.type === 'success' && result.data) {
 					allocations = result.data.data as Allocation[];
+				} else if (result.type === 'failure') {
+					allocations = null;
+					error = result.data?.error as string;
 				}
 			};
 		}}
@@ -94,9 +99,9 @@
 				}}
 			/>
 		</div>
-		{#if startYear > 2013}
+		{#if endYear - startYear < 10}
 			<p style="color: var(--error-foreground-color); font-weight: bold;">
-				must start before 2014 to accommodate 10 year blocks
+				Select at least 11 years to include two distinct 10-year blocks.
 			</p>
 		{/if}
 
@@ -151,6 +156,9 @@
 			{isSubmitting ? 'Building...' : 'Build Portfolio'}
 		</button>
 	</form>
+	{#if error}
+		<p role="alert" style="color: var(--error-foreground-color);">{error}</p>
+	{/if}
 
 	{#if allocations}
 		<div>
@@ -161,7 +169,7 @@
 						style="display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem;"
 					>
 						<span>{item.label}</span>
-						<span>{item.value}%</span>
+						<span>{item.value.toFixed(2)}%</span>
 					</div>
 				{/each}
 			</div>

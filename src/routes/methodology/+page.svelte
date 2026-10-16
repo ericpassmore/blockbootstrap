@@ -81,7 +81,9 @@
 		</p>
 		<p>
 			Taxes are simplified estimates using current tax rates and schedules; historical tax changes
-			are not modeled. Results will vary by individual situation.
+			are not modeled. Portfolio growth is shown before taxes. Tax estimates are reported separately
+			in nominal dollars, including when portfolio values are adjusted for inflation. Results will
+			vary by individual situation.
 		</p>
 	</section>
 </div>

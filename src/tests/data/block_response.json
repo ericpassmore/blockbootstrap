@@ -15,7 +15,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": -11.85,
 			"emergingMarkets": 11.4,
-			"nasdaq100": 8.86
+			"nasdaq100": 8.86,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 2,
@@ -32,7 +35,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 32.94,
 			"emergingMarkets": 74.84,
-			"nasdaq100": 10.58
+			"nasdaq100": 10.58,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 3,
@@ -49,7 +55,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 8.06,
 			"emergingMarkets": -7.32,
-			"nasdaq100": 1.5
+			"nasdaq100": 1.5,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 4,
@@ -66,7 +75,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 11.55,
 			"emergingMarkets": -5.21,
-			"nasdaq100": 42.54
+			"nasdaq100": 42.54,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 5,
@@ -83,7 +95,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 6.36,
 			"emergingMarkets": 6.03,
-			"nasdaq100": 42.54
+			"nasdaq100": 42.54,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 6,
@@ -100,7 +115,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 2.06,
 			"emergingMarkets": -11.59,
-			"nasdaq100": 20.63
+			"nasdaq100": 20.63,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 7,
@@ -117,7 +135,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 20.33,
 			"emergingMarkets": -25.34,
-			"nasdaq100": 85.3
+			"nasdaq100": 85.3,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 8,
@@ -134,7 +155,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": 27.3,
 			"emergingMarkets": 66.41,
-			"nasdaq100": 101.95
+			"nasdaq100": 101.95,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 9,
@@ -151,7 +175,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": -13.96,
 			"emergingMarkets": -30.61,
-			"nasdaq100": -36.84
+			"nasdaq100": -36.84,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		},
 		{
 			"year": 10,
@@ -168,7 +195,10 @@
 			"crypto:BTC": 1,
 			"internationalEquity": -21.21,
 			"emergingMarkets": -2.37,
-			"nasdaq100": -32.65
+			"nasdaq100": -32.65,
+			"crypto:ETH": 0,
+			"crypto:SOL": 0,
+			"crypto:XRP": 0
 		}
 	]
 }

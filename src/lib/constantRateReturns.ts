@@ -1,54 +1,54 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import marketYieldsCsv from '../../static/data/MarketYields.csv?raw';
 
 export class ConstantRateReturns {
 	private static treasuryYield: Map<number, number> = new Map();
 	private static baaCorpYield: Map<number, number> = new Map();
 	private static zeroYield = 0;
 	private static initialized = false;
+	private static initialization: Promise<void> | undefined;
 
-	/**
-	 * Initializes the class by fetching and parsing the CSV data.
-	 * This must be called once before using getYield().
-	 */
-	public static async init(envTarget: string = 'PROD'): Promise<void> {
+	/** Loads yields from the bundled local CSV; concurrent callers share one load. */
+	public static init(): Promise<void>;
+	public static init(environment: string): Promise<void>;
+	public static async init(): Promise<void> {
 		if (this.initialized) return;
-
-		try {
-			let fileContent: string;
-
-			if (envTarget === 'PROD') {
-				// Browser/SvelteKit environment
-				const response = await fetch('https://blockbootstrap.com/data/MarketYields.csv');
-				fileContent = await response.text();
-			} else {
-				// Node/Vitest environment
-				const filePath = path.join('static/data', 'MarketYields.csv');
-				fileContent = fs.readFileSync(filePath, 'utf-8');
-			}
-
-			const lines = fileContent.split('\n');
-
-			// Parse rows (skip header line)
-			for (let i = 1; i < lines.length; i++) {
-				const trimmedLine = lines[i].trim();
-				if (!trimmedLine) continue;
-
-				const values = trimmedLine.replace(/#N\/A/g, '0').split(',');
-				if (values.length < 3) continue;
-
-				const year = parseInt(values[0], 10);
-				const treasuryYield = parseFloat(values[1]);
-				const baaCorpYield = parseFloat(values[2]);
-
-				this.treasuryYield.set(year, treasuryYield);
-				this.baaCorpYield.set(year, baaCorpYield);
-			}
-
-			this.initialized = true;
-		} catch (error) {
-			console.error(`Error fetching or parsing /data/MarketYields.csv:`, error);
+		if (!this.initialization) {
+			this.initialization = Promise.resolve().then(() => this.load(marketYieldsCsv));
 		}
+		try {
+			await this.initialization;
+		} finally {
+			this.initialization = undefined;
+		}
+	}
+
+	private static load(fileContent: string): void {
+		const [header, ...lines] = fileContent.trim().split(/\r?\n/);
+		if (header.trim() !== 'Year,GS10,baaCorp') throw new Error('Invalid market yields header');
+		const treasuryYields = new Map<number, number>();
+		const baaYields = new Map<number, number>();
+		for (const line of lines) {
+			if (!line.trim()) continue;
+			const values = line.split(',').map((value) => value.trim());
+			const [year, treasuryYield, baaYield] = values.map(Number);
+			if (
+				values.length !== 3 ||
+				values.some((value) => value === '') ||
+				!Number.isInteger(year) ||
+				year < 1 ||
+				!Number.isFinite(treasuryYield) ||
+				!Number.isFinite(baaYield) ||
+				treasuryYields.has(year)
+			) {
+				throw new Error('Invalid or duplicate market yields row');
+			}
+			treasuryYields.set(year, treasuryYield);
+			baaYields.set(year, baaYield);
+		}
+		if (treasuryYields.size === 0) throw new Error('Market yields contain no observations');
+		this.treasuryYield = treasuryYields;
+		this.baaCorpYield = baaYields;
+		this.initialized = true;
 	}
 	/**
 	 * Gets the years stored for testing purposes
