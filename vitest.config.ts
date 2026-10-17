@@ -8,6 +8,7 @@ export default mergeConfig(
 		test: {
 			projects: [
 				{
+					extends: true,
 					test: {
 						name: 'client',
 						environment: 'browser',

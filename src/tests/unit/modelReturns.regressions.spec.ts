@@ -47,6 +47,127 @@ afterEach(() => {
 });
 
 describe('portfolio accounting regressions', () => {
+	it.each([
+		['crypto:BTC', -6.27],
+		['crypto:ETH', -10.91],
+		['crypto:XRP', -11.56],
+		['crypto:SOL', -34.09]
+	] as const)(
+		'uses observed 2025 %s returns in historical nominal and real forecasts',
+		(key, percent) => {
+			const nominal = new ModelReturns(
+				1000,
+				[allocation(key)],
+				[47],
+				new ForecastOptions(false, false, 10, true)
+			);
+			const real = new ModelReturns(
+				1000,
+				[allocation(key)],
+				[47],
+				new ForecastOptions(false, true, 10, true)
+			);
+			expect(nominal.results[9].endValue).toBeCloseTo(
+				nominal.results[9].startValue * (1 + percent / 100),
+				8
+			);
+			expect(real.results[9].endValue).toBeCloseTo(
+				(real.results[9].startValue * (1 + percent / 100)) / 1.027,
+				8
+			);
+		}
+	);
+
+	it('keeps power-law crypto forecasts independent of observed 2025 returns', () => {
+		vi.spyOn(powerLawReturnsFromDates, 'percentageReturn').mockReturnValue(10);
+		const model = new ModelReturns(1000, [allocation('crypto:BTC')], [47], new ForecastOptions());
+		expect(BlockData.getSeries(47)![9]['crypto:BTC']).toBe(-6.27);
+		expect(model.results[9].endValue).toBeCloseTo(model.results[9].startValue * 1.1, 8);
+	});
+
+	it('uses observed 2025 bill returns and nominal income taxes without inventing CPI', () => {
+		const model = new ModelReturns(1000, [allocation('TBill')], [47], new ForecastOptions());
+		const lastYear = model.results[9];
+		expect(BlockData.getSeries(47)![9].TBill).toBe(4.21);
+		expect(lastYear.endValue).toBeCloseTo(lastYear.startValue * 1.0421, 10);
+		expect(lastYear.taxes).toBeCloseTo(lastYear.startValue * 0.0421 * 0.1, 10);
+		expect(model.yearsElapsed).toBe(10);
+	});
+
+	it('rejects missing CPI when a real forecast is constructed directly', () => {
+		vi.spyOn(BlockData, 'hasMissingData').mockImplementation(
+			(series, key) => series === 47 && key === 'inflation'
+		);
+		expect(
+			() => new ModelReturns(1000, [allocation('TBill')], [47], new ForecastOptions(false, true))
+		).toThrow('Missing inflation observations');
+	});
+
+	it('compounds actual 2025 CPI in detailed and summary real forecasts with unchanged nominal taxes', () => {
+		const nominal = new ModelReturns(1000, [allocation('TBill')], [47], new ForecastOptions());
+		const options = new ForecastOptions(false, true);
+		const detailed = new ModelReturns(1000, [allocation('TBill')], [47], options);
+		const summary = new ModelReturns(1000, [allocation('TBill')], [47], options, false);
+		const inflationFactor = BlockData.getSeries(47)!.reduce(
+			(factor, row) => factor * (1 + row.inflation / 100),
+			1
+		);
+		expect(BlockData.getSeries(47)![9].inflation).toBe(2.7);
+		expect(detailed.results[9].endValue).toBeCloseTo(
+			(detailed.results[9].startValue * 1.0421) / 1.027,
+			10
+		);
+		expect(detailed.finalValue).toBeCloseTo(nominal.finalValue / inflationFactor, 10);
+		expect(detailed.results.map((row) => row.taxes)).toEqual(
+			nominal.results.map((row) => row.taxes)
+		);
+		expect(summary.finalValue).toBe(detailed.finalValue);
+		expect(summary.totalTaxes).toBe(nominal.totalTaxes);
+		expect(summary.calculateCAGR()).toBe(detailed.calculateCAGR());
+		expect(summary.results).toEqual([]);
+	});
+
+	it('rejects missing dividend yield when S&P tax estimates are constructed directly', () => {
+		vi.spyOn(BlockData, 'hasMissingData').mockImplementation(
+			(series, key) => series === 47 && key === 'sp500DividendYield'
+		);
+		expect(
+			() => new ModelReturns(1000, [allocation('sp500')], [47], new ForecastOptions())
+		).toThrow('Missing S&P 500 dividend yield');
+	});
+
+	it('taxes observed 2025 stock dividends once without adding them again to total returns', () => {
+		const nominal = new ModelReturns(1000, [allocation('sp500')], [47], new ForecastOptions());
+		const realOptions = new ForecastOptions(false, true);
+		const real = new ModelReturns(1000, [allocation('sp500')], [47], realOptions);
+		const summary = new ModelReturns(1000, [allocation('sp500')], [47], realOptions, false);
+		const nominalLast = nominal.results[9];
+		const realLast = real.results[9];
+		expect(BlockData.getSeries(47)![9].sp500DividendYield).toBe(1.15);
+		// The existing simplified tax model uses a fixed 20% rate below its NIIT threshold.
+		expect(nominalLast.taxes).toBeCloseTo(nominalLast.startValue * 0.0115 * 0.2, 10);
+		expect(nominalLast.endValue).toBeCloseTo(nominalLast.startValue * 1.1778, 10);
+		expect(realLast.endValue).toBeCloseTo((realLast.startValue * 1.1778) / 1.027, 10);
+		expect(real.results.map((row) => row.taxes)).toEqual(nominal.results.map((row) => row.taxes));
+		expect(summary.totalTaxes).toBe(nominal.totalTaxes);
+		expect(summary.finalValue).toBe(real.finalValue);
+	});
+
+	it('ignores missing auxiliary inputs for a zero-weight stock allocation in a nominal forecast', () => {
+		vi.spyOn(BlockData, 'hasMissingData').mockImplementation(
+			(series, key) => series === 47 && key === 'sp500DividendYield'
+		);
+		expect(
+			() =>
+				new ModelReturns(
+					1000,
+					[allocation('TBill'), allocation('sp500', 0)],
+					[47],
+					new ForecastOptions()
+				)
+		).not.toThrow();
+	});
+
 	it('holds each asset uninterrupted across real CSV blocks when rebalancing is off', () => {
 		const blocks = [9, 19];
 		const allocations = [allocation('sp500', 60), allocation('treasury10Year', 40)];

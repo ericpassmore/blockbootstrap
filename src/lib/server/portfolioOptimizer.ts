@@ -61,10 +61,15 @@ function observations(returnType: ReturnType): Map<number, Observation[]> {
 		const cells = line.split(',');
 		const series = Number(cells[columns.indexOf('Series')]);
 		const year = Number(cells[columns.indexOf('calendar year')]);
-		const returns = indices.map((index) => Number(cells[index]));
-		if (returns.some((value) => !Number.isFinite(value))) {
-			throw new Error('Invalid portfolio return data');
-		}
+		const returns = indices.map((index) => {
+			const raw = cells[index]?.trim();
+			// Missing observations must not become valid zero returns. Partial years can
+			// coexist with older complete blocks without making the whole source unreadable.
+			if (raw === '' || raw === '#N/A') return NaN;
+			const value = Number(raw);
+			if (!Number.isFinite(value)) throw new Error('Invalid portfolio return data');
+			return value;
+		});
 		const block = blocks.get(series) ?? [];
 		block.push({ year, returns });
 		blocks.set(series, block);
@@ -73,20 +78,24 @@ function observations(returnType: ReturnType): Map<number, Observation[]> {
 	return blocks;
 }
 
-export function selectPortfolioBlocks(startYear = 1988, endYear = 2024): [number, number] {
+export function selectPortfolioBlocks(startYear = 1988, endYear = 2025): [number, number] {
 	if (
 		!Number.isInteger(startYear) ||
 		!Number.isInteger(endYear) ||
 		startYear < 1988 ||
-		endYear > 2024 ||
+		endYear > 2025 ||
 		startYear > endYear
 	) {
-		throw new Error('Years must be integers between 1988 and 2024');
+		throw new Error('Years must be integers between 1988 and 2025');
 	}
 	const eligible = [...observations('nominal')]
 		.filter(
 			([, rows]) =>
-				rows.length === 10 && rows.every((row) => row.year >= startYear && row.year <= endYear)
+				rows.length === 10 &&
+				rows.every(
+					(row) =>
+						row.year >= startYear && row.year <= endYear && row.returns.every(Number.isFinite)
+				)
 		)
 		.map(([series]) => series);
 	if (eligible.length < 2) {
@@ -102,6 +111,9 @@ export function portfolioStatistics(blockNumbers: [number, number], returnType: 
 	const rows = blockNumbers.flatMap((number) => {
 		const block = blocks.get(number);
 		if (!block || block.length !== 10) throw new Error('Missing portfolio block');
+		if (block.some((row) => row.returns.some((value) => !Number.isFinite(value)))) {
+			throw new Error('Incomplete portfolio observations for the selected return type');
+		}
 		return block;
 	});
 	const means = assets.map(

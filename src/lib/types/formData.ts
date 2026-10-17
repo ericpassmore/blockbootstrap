@@ -16,4 +16,5 @@ export interface FormData {
 	finalValueStdDev: number;
 	error: string;
 	options: [boolean, boolean, number, boolean];
+	includeMoreIndexes?: boolean;
 }

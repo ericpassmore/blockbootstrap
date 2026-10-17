@@ -4,6 +4,7 @@ export type ForecastOptionsInterface = {
 	rebalance: boolean;
 	inflationAdjusted: boolean;
 	returnWindow: ReturnWindow;
+	includeMoreIndexes?: boolean;
 };
 
 export class ForecastOptions {
@@ -14,7 +15,8 @@ export class ForecastOptions {
 		public rebalance: boolean = false,
 		public inflationAdjusted: boolean = false,
 		returnWindow: number = 10,
-		cryptoUseHistoricalPrice: boolean = false
+		cryptoUseHistoricalPrice: boolean = false,
+		public includeMoreIndexes: boolean = false
 	) {
 		this.returnWindow = this.sanitizeReturnWindow(returnWindow);
 		this.cryptoUseHistoricalPrice = cryptoUseHistoricalPrice;

@@ -2,6 +2,7 @@ import { type Allocation } from '$lib/modelReturns';
 import { fail } from '@sveltejs/kit';
 import { ForecastService } from '$lib/forecastService';
 import { ForecastOptions } from '$lib/forecastOptions';
+import { setAdditionalIndexes } from '$lib/portfolioAssets';
 import type { Actions } from './$types';
 import { db } from '$lib/server/db'; // your Drizzle DB instance
 import { User } from '$lib/user'; // adjust path as needed
@@ -39,18 +40,22 @@ export const actions: Actions = {
 		const inflationAdjusted = formData.get('inflationAdjusted') === 'on';
 		const returnWindow = Number(formData.get('returnWindow'));
 		const cryptoUseHistoricalPrices = formData.get('cryptousehistoricalprices') === 'on';
+		const includeMoreIndexes = formData.get('includeMoreIndexes') === 'on';
 
 		// Basic validation for form data
 		if (!startingAmount || !allocationsJSON) {
-			return fail(400, { error: 'Missing form data. Please try again.' });
+			return fail(400, { error: 'Missing form data. Please try again.', includeMoreIndexes });
 		}
 
-		const allocations = JSON.parse(allocationsJSON as string) as Allocation[];
+		const allocations = setAdditionalIndexes(
+			JSON.parse(allocationsJSON as string) as Allocation[],
+			includeMoreIndexes
+		);
 		const totalAllocation = allocations.reduce((sum, asset) => sum + asset.value, 0);
 
 		// Server-side validation of allocation total
 		if (Math.round(totalAllocation) !== 100) {
-			return fail(400, { error: 'Total allocation must be 100%.' });
+			return fail(400, { error: 'Total allocation must be 100%.', includeMoreIndexes });
 		}
 
 		// Instantiate the service to perform all calculations and data transformations.
@@ -58,7 +63,8 @@ export const actions: Actions = {
 			rebalance,
 			inflationAdjusted,
 			returnWindow,
-			cryptoUseHistoricalPrices
+			cryptoUseHistoricalPrices,
+			includeMoreIndexes
 		);
 		const forecastService = await ForecastService.create(
 			startingAmount,
@@ -79,6 +85,7 @@ export const actions: Actions = {
 			q3Series: forecastService.q3Series,
 			averageCAGR: forecastService.averageCAGR,
 			finalValueStdDev: forecastService.finalValueStdDev,
+			includeMoreIndexes,
 			options: [rebalance, inflationAdjusted, returnWindow, cryptoUseHistoricalPrices]
 		};
 	}

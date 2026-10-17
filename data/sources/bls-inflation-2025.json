@@ -1,0 +1,14 @@
+{
+	"year": 2025,
+	"source": "U.S. Bureau of Labor Statistics",
+	"title": "Consumer Price Index: 2025 in review",
+	"url": "https://www.bls.gov/opub/ted/2026/consumer-price-index-2025-in-review.htm",
+	"published": "2026-01-21",
+	"measure": "Consumer Price Index for All Urban Consumers (CPI-U), All items",
+	"period_start": "2024-12",
+	"period_end": "2025-12",
+	"seasonally_adjusted": false,
+	"units": "percent",
+	"inflation": "2.7",
+	"scope": "Applied to all four 2025 inflation observations in the legacy and nominal CSVs, and used to derive available 2025 real returns. This is the December-to-December change, not the annual-average change."
+}

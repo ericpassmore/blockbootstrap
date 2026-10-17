@@ -4,6 +4,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const csv = readFileSync('static/data/Fifty10YearBlocksFrom1970.csv', 'utf8');
 const yieldsCsv = readFileSync('static/data/MarketYields.csv', 'utf8');
 
+function withYearValues(year: number, replacements: Record<string, string>): string {
+	const [header, ...lines] = csv.trim().split(/\r?\n/);
+	const headers = header.split(',');
+	return [
+		header,
+		...lines.map((line) => {
+			const values = line.split(',');
+			if (1968 + Number(values[0]) + Number(values[1]) === year) {
+				for (const [key, value] of Object.entries(replacements))
+					values[headers.indexOf(key)] = value;
+			}
+			return values.join(',');
+		})
+	].join('\n');
+}
+
 beforeEach(() => {
 	vi.resetModules();
 	vi.doUnmock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw');
@@ -22,7 +38,7 @@ describe('local historical data loading', () => {
 		await Promise.all(Array.from({ length: 20 }, () => BlockData.init()));
 		expect(fetch).not.toHaveBeenCalled();
 		expect(BlockData.getAllData().size).toBe(50);
-		expect(BlockData.getAllData(true).size).toBe(46);
+		expect(BlockData.getAllData(true).size).toBe(47);
 		for (const block of BlockData.getAllData().values()) {
 			expect(block.map((row) => row.year)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 		}
@@ -51,14 +67,118 @@ describe('local historical data loading', () => {
 	it('restricts blocks to observations for selected noncrypto assets', async () => {
 		const { BlockData } = await import('../../lib/block');
 		await BlockData.init();
-		const all = Array.from({ length: 46 }, (_, index) => index + 1);
+		const all = Array.from({ length: 47 }, (_, index) => index + 1);
 		expect(BlockData.getEligibleBlockNumbers(['sp500'])).toEqual(all);
 		expect(BlockData.getEligibleBlockNumbers(['crypto:SOL', 'sp500'])).toEqual(all);
+		expect(BlockData.getEligibleBlockNumbers(['internationalEquity'])).toEqual(all);
 		expect(BlockData.getEligibleBlockNumbers(['nasdaq100'])).toEqual(all.slice(16));
 		expect(BlockData.getEligibleBlockNumbers(['emergingMarkets'])).toEqual(all.slice(18));
 		expect(BlockData.getEligibleBlockNumbers(['emergingMarkets', 'nasdaq100'])).toEqual(
 			all.slice(18)
 		);
+	});
+
+	it('maps sourced 2025 global and crypto returns consistently across all four overlapping copies', async () => {
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		for (const [block, index] of [
+			[47, 9],
+			[48, 8],
+			[49, 7],
+			[50, 6]
+		]) {
+			const row = BlockData.getSeries(block)![index];
+			expect(row.internationalEquity).toBe(31.89);
+			expect(row.emergingMarkets).toBe(34.36);
+			expect(row.nasdaq100).toBe(20.17);
+			expect(row['crypto:BTC']).toBe(-6.27);
+			expect(row['crypto:ETH']).toBe(-10.91);
+			expect(row['crypto:XRP']).toBe(-11.56);
+			expect(row['crypto:SOL']).toBe(-34.09);
+		}
+		for (const key of ['internationalEquity', 'emergingMarkets', 'nasdaq100'] as const) {
+			expect(BlockData.hasMissingData(47, key)).toBe(false);
+		}
+		expect(BlockData.getIncompleteBlocks()).toEqual([48, 49, 50]);
+	});
+
+	it('loads known 2025 returns, CPI and dividend yield without marking them missing', async () => {
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.getSeries(47)![9].TBill).toBe(4.21);
+		expect(BlockData.getSeries(47)![9].inflation).toBe(2.7);
+		expect(BlockData.getSeries(47)![9].sp500DividendYield).toBe(1.15);
+		expect(BlockData.getIncompleteBlocks()).toEqual([48, 49, 50]);
+		expect(BlockData.hasMissingData(47, 'TBill')).toBe(false);
+		expect(BlockData.hasMissingData(47, 'sp500')).toBe(false);
+		expect(BlockData.hasMissingData(47, 'inflation')).toBe(false);
+		expect(BlockData.hasMissingData(47, 'sp500DividendYield')).toBe(false);
+		expect(BlockData.getEligibleBlockNumbers(['TBill'])).toContain(47);
+		expect(BlockData.getEligibleBlockNumbers(['TBill', 'inflation'])).toContain(47);
+		expect(BlockData.getEligibleBlockNumbers(['sp500', 'sp500DividendYield'])).toContain(47);
+	});
+
+	it('requires a dividend observation for stock tax estimates while retaining known stock returns', async () => {
+		vi.doMock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw', () => ({
+			default: withYearValues(2025, { 'SP500 Dividend Yield': '#N/A' })
+		}));
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.hasMissingData(47, 'sp500DividendYield')).toBe(true);
+		expect(BlockData.getEligibleBlockNumbers(['sp500'])).toContain(47);
+		expect(BlockData.getEligibleBlockNumbers(['sp500', 'sp500DividendYield'])).not.toContain(47);
+	});
+
+	it('excludes unknown CPI without discarding observed nominal returns', async () => {
+		vi.doMock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw', () => ({
+			default: withYearValues(2025, { inflation: '#N/A' })
+		}));
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.hasMissingData(47, 'inflation')).toBe(true);
+		expect(BlockData.getEligibleBlockNumbers(['TBill'])).toContain(47);
+		expect(BlockData.getEligibleBlockNumbers(['TBill', 'inflation'])).not.toContain(47);
+	});
+
+	it('accepts observed zero auxiliary values instead of confusing them with missing data', async () => {
+		vi.doMock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw', () => ({
+			default: withYearValues(2025, { inflation: '0%', 'SP500 Dividend Yield': '0%' })
+		}));
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.hasMissingData(47, 'inflation')).toBe(false);
+		expect(BlockData.hasMissingData(47, 'sp500DividendYield')).toBe(false);
+		expect(
+			BlockData.getEligibleBlockNumbers(['sp500', 'inflation', 'sp500DividendYield'])
+		).toContain(47);
+	});
+
+	it('requires an observed return rather than auxiliary inputs to complete a year', async () => {
+		const headers = csv.split('\n')[0].split(',');
+		const unavailable = Object.fromEntries(headers.slice(2).map((header) => [header, '#N/A']));
+		vi.doMock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw', () => ({
+			default: withYearValues(2025, {
+				...unavailable,
+				inflation: '0%',
+				'SP500 Dividend Yield': '0%'
+			})
+		}));
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.getIncompleteBlocks()).toContain(47);
+	});
+
+	it('accepts a genuine zero return in a partially observed year', async () => {
+		const headers = csv.split('\n')[0].split(',');
+		const unavailable = Object.fromEntries(headers.slice(2).map((header) => [header, '#N/A']));
+		vi.doMock('../../../static/data/Fifty10YearBlocksFrom1970.csv?raw', () => ({
+			default: withYearValues(2025, { ...unavailable, '3-month T.Bill': '0%' })
+		}));
+		const { BlockData } = await import('../../lib/block');
+		await BlockData.init();
+		expect(BlockData.getIncompleteBlocks()).not.toContain(47);
+		expect(BlockData.hasMissingData(47, 'TBill')).toBe(false);
+		expect(BlockData.getEligibleBlockNumbers(['TBill'])).toContain(47);
 	});
 
 	it('keeps known annual observations consistent in every overlapping block', () => {

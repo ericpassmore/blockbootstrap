@@ -206,7 +206,7 @@ describe('Forecast Service', () => {
 		expect(finalValue30 / finalValue20).toBeGreaterThanOrEqual(1.5); // Broaden range
 		expect(finalValue30 / finalValue20).toBeLessThanOrEqual(3.0); // Broaden range
 	});
-	it('creates a 20 year forecast with 100% allocation to sp500 and checks blocks 47-50 for completeness', async () => {
+	it('uses 47 complete blocks for a 20-year S&P forecast and excludes future blocks', async () => {
 		const allocations: Allocation[] = [{ key: 'sp500', label: 'S&P 500', value: 100 }];
 		const startingAmount = 10000;
 		const forecastOptions = new ForecastOptions(false, false, 20);
@@ -216,13 +216,14 @@ describe('Forecast Service', () => {
 			forecastOptions
 		);
 
-		// Check blocks 47, 48, 49, 50 for completeness in series
-		const blockIdsToCheck = [47, 48, 49, 50];
+		// The observed 2016–2025 block is eligible; later blocks contain future years.
+		expect(forecastService.scenarioCount).toBe(1081);
+		const blockIdsToCheck = [48, 49, 50];
 		for (const blockId of blockIdsToCheck) {
 			expect(forecastService.q1Series).not.toContain(blockId);
 			expect(forecastService.q3Series).not.toContain(blockId);
 			expect(forecastService.medianSeries).not.toContain(blockId);
-			expect(forecastService.forecasts.map((f) => f.blockNumbers)).not.toContain(blockId);
+			expect(forecastService.forecasts.flatMap((f) => f.blockNumbers)).not.toContain(blockId);
 		}
 	});
 });

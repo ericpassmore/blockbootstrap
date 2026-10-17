@@ -92,16 +92,18 @@ export class BlockData {
 			}
 			const marketData = { year, usSmallCapDividendYield: 1.5 } as MarketData;
 			const missingInBlock = missing.get(series) ?? new Set<keyof MarketData>();
+			let hasObservedReturn = false;
 			for (const [key, name] of Object.entries(columns)) {
 				const raw = values[headers.indexOf(name)];
 				const parsed = raw === '' || raw === '#N/A' ? NaN : Number(raw.replace(/%$/, ''));
 				const asset = key as keyof typeof columns;
 				marketData[asset] = Number.isFinite(parsed) ? parsed : 0;
 				if (!Number.isFinite(parsed)) missingInBlock.add(asset);
+				else if (asset !== 'inflation' && asset !== 'sp500DividendYield') hasObservedReturn = true;
 			}
 			missing.set(series, missingInBlock);
-			// A wholly unavailable future year makes a block incomplete for every portfolio.
-			if (values.filter((value) => value === '#N/A').length >= 8) incomplete.add(series);
+			// Auxiliary data alone cannot make an otherwise unavailable future year complete.
+			if (!hasObservedReturn) incomplete.add(series);
 			const block = data.get(series) ?? [];
 			if (block.some((row) => row.year === year)) throw new Error('Duplicate market data year');
 			block.push(marketData);
@@ -124,15 +126,20 @@ export class BlockData {
 		return new Map([...this.marketDataMap].filter(([key]) => !this.incompleteBlocks.includes(key)));
 	}
 
-	/** Selected noncrypto assets must have observations for all ten years.
+	/** Required noncrypto inputs must have observations for all ten years.
 	 * Missing crypto history intentionally earns a flat nominal return.
-	 * Callers should pass only asset keys with nonzero portfolio allocations.
+	 * Callers add auxiliary inputs such as inflation and dividend yield when required.
 	 */
 	public static getEligibleBlockNumbers(assetKeys: (keyof MarketData)[]): number[] {
 		const required = assetKeys.filter((key) => !key.startsWith('crypto:'));
 		return [...this.getAllData(true).keys()].filter((series) =>
 			required.every((key) => !this.missingAssets.get(series)?.has(key))
 		);
+	}
+
+	/** Missing observations remain distinct from observed zero values in the numeric data. */
+	public static hasMissingData(series: number, key: keyof MarketData): boolean {
+		return this.missingAssets.get(series)?.has(key) ?? false;
 	}
 
 	public static getSeries(key: number): MarketData[] | undefined {

@@ -1,0 +1,144 @@
+{
+	"year": 2025,
+	"source": "Coinbase Exchange public API",
+	"url": "https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles",
+	"quote_currency": "USD",
+	"units": "percent",
+	"basis": "Last trade in UTC daily bucket, Dec31 2024 close to Dec31 2025 close",
+	"retrieved_at": "2026-10-16T22:36:04.548900+00:00",
+	"formula": "(end_close_usd / start_close_usd - 1) * 100",
+	"rounding": "Percent returns rounded to two decimal places (half even); CSV decimal returns use four decimal places.",
+	"returns": {
+		"Bitcoin*": "-6.27",
+		"Ethereum": "-10.91",
+		"XRP": "-11.56",
+		"SOL": "-34.09"
+	},
+	"assets": {
+		"BTC": {
+			"2024": {
+				"url": "https://api.exchange.coinbase.com/products/BTC-USD/candles?start=2024-12-31T00:00:00Z&end=2025-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2024-12-31T00:00:00Z",
+				"bucket_end": "2025-01-01T00:00:00Z",
+				"timestamp": 1735603200,
+				"close_usd": "93354.22",
+				"candle": ["1735603200", "91887.13", "96148.94", "92620.7", "93354.22", "10348.6325655"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/BTC-USD/candles?start=2024-12-31T23:59:00Z&end=2025-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1735689540,
+					"close_usd": "93354.22",
+					"candle": ["1735689540", "93324.33", "93400", "93385.6", "93354.22", "18.84936214"]
+				}
+			},
+			"2025": {
+				"url": "https://api.exchange.coinbase.com/products/BTC-USD/candles?start=2025-12-31T00:00:00Z&end=2026-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2025-12-31T00:00:00Z",
+				"bucket_end": "2026-01-01T00:00:00Z",
+				"timestamp": 1767139200,
+				"close_usd": "87497.94",
+				"candle": ["1767139200", "87082.64", "89100", "88397.24", "87497.94", "7261.18123917"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/BTC-USD/candles?start=2025-12-31T23:59:00Z&end=2026-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1767225540,
+					"close_usd": "87497.94",
+					"candle": ["1767225540", "87496.21", "87501.88", "87501.88", "87497.94", "1.03105528"]
+				}
+			},
+			"return_percent": "-6.273181865801031811952368090"
+		},
+		"ETH": {
+			"2024": {
+				"url": "https://api.exchange.coinbase.com/products/ETH-USD/candles?start=2024-12-31T00:00:00Z&end=2025-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2024-12-31T00:00:00Z",
+				"bucket_end": "2025-01-01T00:00:00Z",
+				"timestamp": 1735603200,
+				"close_usd": "3330.32",
+				"candle": ["1735603200", "3310", "3447", "3355.44", "3330.32", "94223.76498048"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/ETH-USD/candles?start=2024-12-31T23:59:00Z&end=2025-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1735689540,
+					"close_usd": "3330.32",
+					"candle": ["1735689540", "3330.11", "3332.1", "3331.27", "3330.32", "28.44278405"]
+				}
+			},
+			"2025": {
+				"url": "https://api.exchange.coinbase.com/products/ETH-USD/candles?start=2025-12-31T00:00:00Z&end=2026-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2025-12-31T00:00:00Z",
+				"bucket_end": "2026-01-01T00:00:00Z",
+				"timestamp": 1767139200,
+				"close_usd": "2966.84",
+				"candle": ["1767139200", "2958.07", "3024.29", "2970.42", "2966.84", "84906.66933587"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/ETH-USD/candles?start=2025-12-31T23:59:00Z&end=2026-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1767225540,
+					"close_usd": "2966.84",
+					"candle": ["1767225540", "2966.05", "2966.98", "2966.97", "2966.84", "27.14663102"]
+				}
+			},
+			"return_percent": "-10.91426649691320954142544861"
+		},
+		"XRP": {
+			"2024": {
+				"url": "https://api.exchange.coinbase.com/products/XRP-USD/candles?start=2024-12-31T00:00:00Z&end=2025-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2024-12-31T00:00:00Z",
+				"bucket_end": "2025-01-01T00:00:00Z",
+				"timestamp": 1735603200,
+				"close_usd": "2.0793",
+				"candle": ["1735603200", "2.01", "2.1471", "2.0553", "2.0793", "118398763.596532"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/XRP-USD/candles?start=2024-12-31T23:59:00Z&end=2025-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1735689540,
+					"close_usd": "2.0793",
+					"candle": ["1735689540", "2.079", "2.08", "2.0796", "2.0793", "28775.738459"]
+				}
+			},
+			"2025": {
+				"url": "https://api.exchange.coinbase.com/products/XRP-USD/candles?start=2025-12-31T00:00:00Z&end=2026-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2025-12-31T00:00:00Z",
+				"bucket_end": "2026-01-01T00:00:00Z",
+				"timestamp": 1767139200,
+				"close_usd": "1.839",
+				"candle": ["1767139200", "1.8091", "1.8818", "1.8754", "1.839", "73769599.299846"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/XRP-USD/candles?start=2025-12-31T23:59:00Z&end=2026-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1767225540,
+					"close_usd": "1.839",
+					"candle": ["1767225540", "1.8389", "1.8394", "1.8391", "1.839", "19538.179633"]
+				}
+			},
+			"return_percent": "-11.55677391429808108498052229"
+		},
+		"SOL": {
+			"2024": {
+				"url": "https://api.exchange.coinbase.com/products/SOL-USD/candles?start=2024-12-31T00:00:00Z&end=2025-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2024-12-31T00:00:00Z",
+				"bucket_end": "2025-01-01T00:00:00Z",
+				"timestamp": 1735603200,
+				"close_usd": "188.82",
+				"candle": ["1735603200", "187.72", "198.89", "191", "188.82", "925967.7320928"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/SOL-USD/candles?start=2024-12-31T23:59:00Z&end=2025-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1735689540,
+					"close_usd": "188.82",
+					"candle": ["1735689540", "188.03", "189.28", "188.96", "188.82", "14593.13674239"]
+				}
+			},
+			"2025": {
+				"url": "https://api.exchange.coinbase.com/products/SOL-USD/candles?start=2025-12-31T00:00:00Z&end=2026-01-01T00:00:00Z&granularity=86400",
+				"bucket_start": "2025-12-31T00:00:00Z",
+				"bucket_end": "2026-01-01T00:00:00Z",
+				"timestamp": 1767139200,
+				"close_usd": "124.45",
+				"candle": ["1767139200", "123.07", "127.24", "124.87", "124.45", "1209253.50226929"],
+				"last_minute_verification": {
+					"url": "https://api.exchange.coinbase.com/products/SOL-USD/candles?start=2025-12-31T23:59:00Z&end=2026-01-01T00:00:00Z&granularity=60",
+					"timestamp": 1767225540,
+					"close_usd": "124.45",
+					"candle": ["1767225540", "124.31", "124.45", "124.45", "124.45", "1281.56207321"]
+				}
+			},
+			"return_percent": "-34.09066836140239381421459591"
+		}
+	},
+	"scope": "Observed USD spot price returns on Coinbase, excluding fees and staking rewards. Daily close is the last trade in the UTC bucket and is independently verified against the final 23:59 UTC minute candle. Replaces 2025 projections in all four overlapping copies; non-2025 observations and projections remain unchanged."
+}

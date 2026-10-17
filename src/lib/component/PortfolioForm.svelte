@@ -1,5 +1,7 @@
 <script context="module" lang="ts">
 	import type { FormData } from '$lib/types/formData';
+	import type { Allocation } from '$lib/modelReturns';
+	import { setAdditionalIndexes } from '$lib/portfolioAssets';
 
 	export interface PortfolioFormProps {
 		form: FormData;
@@ -15,6 +17,7 @@
 	let inflationAdjusted = form?.options?.[1] || false;
 	let returnWindow = form?.options?.[2] || 10;
 	let cryptousehistoricalprices = form?.options?.[3] || false;
+	let includeMoreIndexes = form?.includeMoreIndexes ?? false;
 
 	let startingAmount: number = form?.startingAmount || 10000;
 	let startingAmountFormatted: string = startingAmount.toLocaleString('en-US');
@@ -38,16 +41,24 @@
 		startingAmountFormatted = formatNumberWithCommas(numericValue);
 	}
 
-	let allocations = form?.allocations || [
-		{ key: 'sp500', label: 'S&P 500', value: 45 },
-		{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
-		{ key: 'TBill', label: 'T-Bill', value: 0 },
-		{ key: 'treasury10Year', label: '10-Year Treasury', value: 10 },
-		{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
-		{ key: 'realEstate', label: 'Real Estate', value: 20 },
-		{ key: 'gold', label: 'Gold', value: 5 },
-		{ key: 'crypto:BTC', label: 'Bitcoin', value: 0 }
-	];
+	let allocations: Allocation[] = setAdditionalIndexes(
+		form?.allocations || [
+			{ key: 'sp500', label: 'S&P 500', value: 45 },
+			{ key: 'usSmallCap', label: 'US Small Cap', value: 10 },
+			{ key: 'TBill', label: 'T-Bill', value: 0 },
+			{ key: 'treasury10Year', label: '10-Year Treasury', value: 10 },
+			{ key: 'baaCorp', label: 'BAA Corporate Bond', value: 10 },
+			{ key: 'realEstate', label: 'Real Estate', value: 20 },
+			{ key: 'gold', label: 'Gold', value: 5 },
+			{ key: 'crypto:BTC', label: 'Bitcoin', value: 0 }
+		],
+		includeMoreIndexes
+	);
+
+	function toggleMoreIndexes(event: Event) {
+		includeMoreIndexes = (event.currentTarget as HTMLInputElement).checked;
+		allocations = setAdditionalIndexes(allocations, includeMoreIndexes);
+	}
 
 	$: totalAllocation = allocations.reduce(
 		(sum: number, asset: { value: number }) => sum + asset.value,
@@ -57,6 +68,28 @@
 </script>
 
 <form method="POST" id="main-form" action="?/runForecast" on:submit={onSubmit}>
+	<div class="info-block index-selector">
+		<label class="index-toggle" for="includeMoreIndexes">
+			<input
+				type="checkbox"
+				role="switch"
+				id="includeMoreIndexes"
+				name="includeMoreIndexes"
+				checked={includeMoreIndexes}
+				on:change={toggleMoreIndexes}
+				aria-describedby="index-history"
+			/>
+			Enable more indexes
+		</label>
+		<p id="index-history">
+			{#if includeMoreIndexes}
+				Adds International stocks, Emerging markets and Nasdaq-100. Forecast history starts in 1988
+				(block 19).
+			{:else}
+				Forecast history starts in 1970 (block 01).
+			{/if}
+		</p>
+	</div>
 	<div class="form-group starting-amount-group">
 		<label for="startingAmount">Starting Investment ($)</label>
 		<input
@@ -75,7 +108,14 @@
 		<div class="form-group allocation-item">
 			<label for="{asset.key}-range">{asset.label}</label>
 			<input type="range" id="{asset.key}-range" bind:value={asset.value} min="0" max="100" />
-			<input type="number" id="{asset.key}-number" bind:value={asset.value} min="0" max="100" />
+			<input
+				type="number"
+				id="{asset.key}-number"
+				aria-label="{asset.label} allocation percentage"
+				bind:value={asset.value}
+				min="0"
+				max="100"
+			/>
 		</div>
 	{/each}
 
@@ -162,6 +202,22 @@
 </form>
 
 <style>
+	.index-selector {
+		margin-bottom: 1rem;
+	}
+
+	.index-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+	}
+
+	.index-selector p {
+		margin: 0.5rem 0 0;
+		font-size: 0.9rem;
+	}
+
 	/* Ensure the label and radio group stack vertically */
 	.checkbox-label-row {
 		display: flex;

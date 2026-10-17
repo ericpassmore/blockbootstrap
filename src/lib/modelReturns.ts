@@ -88,6 +88,15 @@ export class ModelReturns {
 				console.warn(`Historical data for Block ${blockNumber} could not be found. Skipping.`);
 				continue;
 			}
+			if (options.inflationAdjusted && BlockData.hasMissingData(blockNumber, 'inflation')) {
+				throw new Error(`Missing inflation observations for historical block ${blockNumber}.`);
+			}
+			if (
+				allocations.some((asset) => asset.key === 'sp500' && asset.value > 0) &&
+				BlockData.hasMissingData(blockNumber, 'sp500DividendYield')
+			) {
+				throw new Error(`Missing S&P 500 dividend yield for historical block ${blockNumber}.`);
+			}
 
 			for (const yearData of block) {
 				const startOfYearValue = currentPortfolioValue / inflationDeflator;

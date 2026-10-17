@@ -1,0 +1,40 @@
+{
+	"year": 2025,
+	"units": "percent",
+	"currency": "USD",
+	"returns": {
+		"International Stocks": "31.89",
+		"Emerging Markets": "34.36",
+		"NASDAQ 100": "20.17"
+	},
+	"sources": {
+		"International Stocks": {
+			"provider": "MSCI",
+			"benchmark": "MSCI EAFE Index",
+			"return_type": "gross total return",
+			"url": "https://www.msci.com/documents/10199/255599/msci-eafe.pdf",
+			"page": 1,
+			"table": "Annual Performance (%), 2025 row",
+			"factsheet_date": "2026-09-30"
+		},
+		"Emerging Markets": {
+			"provider": "MSCI",
+			"benchmark": "MSCI Emerging Markets Index",
+			"return_type": "gross total return",
+			"url": "https://www.msci.com/documents/10199/255599/msci-emerging-markets-index-gross.pdf",
+			"page": 1,
+			"table": "Annual Performance (%), 2025 row",
+			"factsheet_date": "2026-09-30"
+		},
+		"NASDAQ 100": {
+			"provider": "Nasdaq Global Indexes",
+			"benchmark": "Nasdaq-100 (NDX)",
+			"return_type": "price return",
+			"url": "https://indexes.nasdaq.com/docs/NDXE%20Performance%20Update_Dec%202025.pdf",
+			"page": 2,
+			"table": "One-year performance, NDX column",
+			"as_of": "2025-12-31"
+		}
+	},
+	"scope": "Applied only to 2025. Benchmark variants are inferred from matching historical sequences: EAFE and EM gross USD total returns, Nasdaq-100 price returns. NDX 20.17% preserves the existing price-return convention; XNDX total return is 21.02%. Earlier history is unchanged, including the existing 2018 EM value of -14.25% versus -14.24% in the current factsheet."
+}

@@ -109,6 +109,74 @@ describe('portfolio covariance data', () => {
 });
 
 describe('portfolio block selection', () => {
+	it.each(['nominal', 'real', 'excess'] as const)(
+		'calculates complete 2025 %s statistics from all 14 observed returns',
+		(returnType) => {
+			const { meanReturns, covMatrix } = portfolioStatistics([19, 47], returnType);
+			const filename = {
+				nominal: 'nominal_returns',
+				real: 'real_returns',
+				excess: 'risk_free_returns'
+			}[returnType];
+			const [columns, ...data] = csvRows(`${dataPath}/${filename}_10yr_blocks_1970on.csv`);
+			const rows = data.filter((row) => [19, 47].includes(Number(row[0])));
+			expect(rows).toHaveLength(20);
+			expect(Object.keys(meanReturns)).toHaveLength(14);
+			for (const name of Object.keys(meanReturns)) {
+				const xs = rows.map((row) => Number(row[columns.indexOf(name)]));
+				expect(meanReturns[name].mean).toBeCloseTo(xs.reduce((sum, x) => sum + x, 0) / 20, 12);
+				for (const other of Object.keys(meanReturns)) {
+					const ys = rows.map((row) => Number(row[columns.indexOf(other)]));
+					let sum = 0;
+					for (let a = 0; a < 20; a++)
+						for (let b = a + 1; b < 20; b++) sum += (xs[a] - xs[b]) * (ys[a] - ys[b]);
+					expect(covMatrix[name][other]).toBeCloseTo(sum / (20 * 19), 12);
+				}
+			}
+			const portfolio = buildOptimizedPortfolio(0.08, 0.03, [19, 47], returnType);
+			expect(portfolio.reduce((sum, asset) => sum + asset.value / 100, 0)).toBeCloseTo(1, 10);
+			expect(
+				portfolio.reduce(
+					(sum, asset) => sum + (asset.value / 100) * meanReturns[asset.label].mean,
+					0
+				)
+			).toBeGreaterThanOrEqual(0.08 - 1e-10);
+			expect(
+				portfolio
+					.filter((asset) => asset.key.startsWith('crypto:'))
+					.reduce((sum, asset) => sum + asset.value / 100, 0)
+			).toBeLessThanOrEqual(0.03 + 1e-10);
+		}
+	);
+	it.each(['nominal', 'real', 'excess'] as const)(
+		'rejects a missing %s observation rather than treating a blank as zero',
+		async (returnType) => {
+			const filename = {
+				nominal: 'nominal_returns',
+				real: 'real_returns',
+				excess: 'risk_free_returns'
+			}[returnType];
+			const sourcePath = `../../../static/data/${filename}_10yr_blocks_1970on.csv?raw`;
+			const rows = csvRows(`${dataPath}/${filename}_10yr_blocks_1970on.csv`);
+			const row = rows.find((row) => row[0] === '47' && row[1] === '10')!;
+			row[rows[0].indexOf('Gold*')] = '';
+			vi.resetModules();
+			vi.doMock(sourcePath, () => ({ default: rows.map((row) => row.join(',')).join('\n') }));
+			try {
+				const fresh = await import('$lib/server/portfolioOptimizer');
+				expect(() => fresh.portfolioStatistics([19, 47], returnType)).toThrow(
+					'Incomplete portfolio observations'
+				);
+			} finally {
+				vi.doUnmock(sourcePath);
+			}
+		}
+	);
+	it('includes the complete 2016–2025 block in selected and default ranges', () => {
+		vi.spyOn(Math, 'random').mockReturnValue(0.999999);
+		expect(selectPortfolioBlocks(2015, 2025)).toEqual([46, 47]);
+		expect(selectPortfolioBlocks()).toContain(47);
+	});
 	it('includes complete blocks ending in the requested final year', () => {
 		vi.spyOn(Math, 'random').mockReturnValue(0);
 		expect(selectPortfolioBlocks(2014, 2024)).toEqual([45, 46]);
@@ -118,7 +186,7 @@ describe('portfolio block selection', () => {
 		[1988, 1997],
 		[2024, 1988],
 		[1987, 2024],
-		[1988, 2025],
+		[1988, 2026],
 		[1988.5, 2024],
 		[NaN, 2024]
 	])('rejects unsupported range %s–%s', (start, end) => {

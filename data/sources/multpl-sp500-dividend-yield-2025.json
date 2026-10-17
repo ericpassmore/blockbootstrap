@@ -1,0 +1,11 @@
+{
+	"year": 2025,
+	"source": "Multpl",
+	"title": "S&P 500 Dividend Yield by Year",
+	"url": "https://www.multpl.com/s-p-500-dividend-yield/table/by-year",
+	"observation_date": "2025-12-31",
+	"measure": "S&P 500 trailing 12-month dividend per share divided by price",
+	"units": "percent",
+	"dividend_yield": "1.15",
+	"scope": "Year-end yield applied to all four 2025 S&P dividend inputs in the legacy and nominal CSVs for the existing tax model. The S&P total return already includes dividends; this yield is not added to total returns."
+}

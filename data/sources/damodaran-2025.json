@@ -1,0 +1,17 @@
+{
+	"year": 2025,
+	"source": "Aswath Damodaran, Historical Returns on Stocks, Bonds and Bills",
+	"url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html",
+	"source_updated": "2026-01-05",
+	"units": "percent",
+	"returns": {
+		"S&P 500 (includes dividends)": "17.78",
+		"US Small cap (bottom decile)": "16.53",
+		"3-month T.Bill": "4.21",
+		"US T. Bond (10-year)": "7.80",
+		"Baa Corporate Bond": "6.96",
+		"Real Estate": "1.58",
+		"Gold*": "66.22"
+	},
+	"scope": "This source supplies seven annual total returns. Inflation, S&P dividend yield, international stocks, emerging markets, NASDAQ 100 and observed crypto returns are provided by the separate 2025 source snapshots."
+}

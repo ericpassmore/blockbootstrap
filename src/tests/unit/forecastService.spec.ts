@@ -52,12 +52,158 @@ afterEach(() => {
 });
 
 describe('local-data forecast aggregation', () => {
-	it('calculates all 15,180 scenarios but materializes only 50 detailed thirty-year paths', async () => {
+	it.each([
+		[10, 29, 47],
+		[20, 406, 1081],
+		[30, 3654, 16215]
+	])(
+		'limits all %s-year forecasts to block 19 onward when additional indexes are enabled',
+		async (returnWindow, restrictedCount, defaultCount) => {
+			const portfolio: Allocation[] = [
+				{ key: 'sp500', label: 'Stocks', value: 100 },
+				{ key: 'internationalEquity', label: 'International', value: 0 },
+				{ key: 'emergingMarkets', label: 'Emerging', value: 0 },
+				{ key: 'nasdaq100', label: 'NASDAQ', value: 0 }
+			];
+			for (const real of [false, true]) {
+				const restricted = await ForecastService.create(
+					1000,
+					portfolio,
+					new ForecastOptions(false, real, returnWindow, true, true)
+				);
+				expect(restricted.scenarioCount).toBe(restrictedCount);
+				expect(
+					restricted.forecasts.every((forecast) =>
+						forecast.blockNumbers.every((block) => block >= 19)
+					)
+				).toBe(true);
+				const unrestricted = await ForecastService.create(
+					1000,
+					portfolio,
+					new ForecastOptions(false, real, returnWindow, true)
+				);
+				expect(unrestricted.scenarioCount).toBe(defaultCount);
+			}
+		}
+	);
+
+	it('uses observed 2025 CPI for real bill returns while preserving nominal taxes', async () => {
+		const bills: Allocation[] = [
+			{ key: 'TBill', label: 'Bills', value: 100 },
+			{ key: 'sp500', label: 'Unused stock allocation', value: 0 }
+		];
+		const nominal = await ForecastService.create(1000, bills, new ForecastOptions());
+		expect(nominal.scenarioCount).toBe(47);
+		const newest = nominal.forecasts.find((forecast) => forecast.blockNumbers[0] === 47)!;
+		expect(newest).toBeDefined();
+		const lastYear = newest.results[9];
+		expect(lastYear.endValue).toBeCloseTo(lastYear.startValue * 1.0421, 10);
+		expect(lastYear.taxes).toBeCloseTo(lastYear.startValue * 0.0421 * 0.1, 10);
+		const real = await ForecastService.create(1000, bills, new ForecastOptions(false, true));
+		expect(real.scenarioCount).toBe(47);
+		const newestReal = real.forecasts.find((forecast) => forecast.blockNumbers[0] === 47)!;
+		expect(newestReal).toBeDefined();
+		expect(newestReal.results[9].endValue).toBeCloseTo(
+			(newestReal.results[9].startValue * 1.0421) / 1.027,
+			10
+		);
+		expect(newestReal.results.map((row) => row.taxes)).toEqual(
+			newest.results.map((row) => row.taxes)
+		);
+		expect(newestReal.taxes).toBe(newest.taxes);
+	});
+
+	it('excludes a block from real forecasts when its CPI observation is unavailable', async () => {
+		const eligible = BlockData.getEligibleBlockNumbers.bind(BlockData);
+		const missing = BlockData.hasMissingData.bind(BlockData);
+		vi.spyOn(BlockData, 'hasMissingData').mockImplementation(
+			(series, key) => (series === 47 && key === 'inflation') || missing(series, key)
+		);
+		vi.spyOn(BlockData, 'getEligibleBlockNumbers').mockImplementation((keys) =>
+			eligible(keys).filter((series) => series !== 47 || !keys.includes('inflation'))
+		);
+		const bills: Allocation[] = [{ key: 'TBill', label: 'Bills', value: 100 }];
+		const nominal = await ForecastService.create(1000, bills, new ForecastOptions());
+		const real = await ForecastService.create(1000, bills, new ForecastOptions(false, true));
+		expect(nominal.scenarioCount).toBe(47);
+		expect(real.scenarioCount).toBe(46);
+		expect(real.forecasts.some((forecast) => forecast.blockNumbers.includes(47))).toBe(false);
+	});
+
+	it.each([false, true])(
+		'uses observed dividend yield for stock forecasts with real=%s',
+		async (inflationAdjusted) => {
+			expect(BlockData.getEligibleBlockNumbers(['sp500'])).toContain(47);
+			const stocks = await ForecastService.create(
+				1000,
+				[{ key: 'sp500', label: 'Stocks', value: 100 }],
+				new ForecastOptions(false, inflationAdjusted)
+			);
+			expect(stocks.scenarioCount).toBe(47);
+			expect(stocks.forecasts.some((forecast) => forecast.blockNumbers.includes(47))).toBe(true);
+		}
+	);
+
+	it.each([false, true])(
+		'requires missing dividend inputs only for positive stock weights with real=%s',
+		async (inflationAdjusted) => {
+			const eligible = BlockData.getEligibleBlockNumbers.bind(BlockData);
+			const missing = BlockData.hasMissingData.bind(BlockData);
+			vi.spyOn(BlockData, 'hasMissingData').mockImplementation(
+				(series, key) => (series === 47 && key === 'sp500DividendYield') || missing(series, key)
+			);
+			vi.spyOn(BlockData, 'getEligibleBlockNumbers').mockImplementation((keys) =>
+				eligible(keys).filter((series) => series !== 47 || !keys.includes('sp500DividendYield'))
+			);
+			const stocks = await ForecastService.create(
+				1000,
+				[{ key: 'sp500', label: 'Stocks', value: 100 }],
+				new ForecastOptions(false, inflationAdjusted)
+			);
+			expect(stocks.scenarioCount).toBe(46);
+			expect(stocks.forecasts.some((forecast) => forecast.blockNumbers.includes(47))).toBe(false);
+			const bills = await ForecastService.create(
+				1000,
+				[
+					{ key: 'TBill', label: 'Bills', value: 100 },
+					{ key: 'sp500', label: 'Unused stocks', value: 0 }
+				],
+				new ForecastOptions(false, inflationAdjusted)
+			);
+			expect(bills.scenarioCount).toBe(47);
+		}
+	);
+
+	it.each([
+		['treasury10Year', 47],
+		['baaCorp', 47],
+		['gold', 47],
+		['realEstate', 47],
+		['usSmallCap', 47],
+		['internationalEquity', 47],
+		['emergingMarkets', 29],
+		['nasdaq100', 31]
+	] as const)(
+		'includes known 2025 observations for nominal and real %s portfolios',
+		async (key, scenarioCount) => {
+			for (const inflationAdjusted of [false, true]) {
+				const service = await ForecastService.create(
+					1000,
+					[{ key, label: key, value: 100 }],
+					new ForecastOptions(false, inflationAdjusted)
+				);
+				expect(service.scenarioCount).toBe(scenarioCount);
+				expect(service.forecasts.some((forecast) => forecast.blockNumbers.includes(47))).toBe(true);
+			}
+		}
+	);
+
+	it('calculates all 16,215 scenarios but materializes only 50 detailed thirty-year paths', async () => {
 		const options = new ForecastOptions(false, false, 30, true);
 		const service = await ForecastService.create(100000, allocations, options);
-		expect(service.scenarioCount).toBe(15180);
+		expect(service.scenarioCount).toBe(16215);
 		expect(service.forecasts).toHaveLength(50);
-		expect(records).toEqual({ summaries: 15180, details: 50, summaryRows: 0, detailRows: 1500 });
+		expect(records).toEqual({ summaries: 16215, details: 50, summaryRows: 0, detailRows: 1500 });
 		expect(new Set(service.forecasts.map((forecast) => forecast.blockNumbers.join(','))).size).toBe(
 			50
 		);
@@ -80,8 +226,8 @@ describe('local-data forecast aggregation', () => {
 
 	it('computes percentiles, mean CAGR and standard deviation over every scenario before thinning', async () => {
 		const expected: { blocks: number[]; value: number; cagr: number }[] = [];
-		for (let first = 1; first <= 46; first++) {
-			for (let second = first + 1; second <= 46; second++) {
+		for (let first = 1; first <= 47; first++) {
+			for (let second = first + 1; second <= 47; second++) {
 				const rows = [first, second].flatMap((block) => BlockData.getSeries(block)!);
 				const value = allocations.reduce(
 					(total, asset) =>
@@ -100,6 +246,7 @@ describe('local-data forecast aggregation', () => {
 			}
 		}
 		expected.sort((left, right) => left.value - right.value);
+		expect(expected).toHaveLength(1081);
 		const service = await ForecastService.create(
 			100000,
 			allocations,
@@ -136,10 +283,10 @@ describe('local-data forecast aggregation', () => {
 			],
 			new ForecastOptions()
 		);
-		expect(service.scenarioCount).toBe(28);
+		expect(service.scenarioCount).toBe(29);
 		expect(
 			service.forecasts.map((forecast) => forecast.blockNumbers[0]).sort((a, b) => a - b)
-		).toEqual(Array.from({ length: 28 }, (_, index) => index + 19));
+		).toEqual(Array.from({ length: 29 }, (_, index) => index + 19));
 		const unrestricted = await ForecastService.create(
 			10000,
 			[
@@ -149,7 +296,7 @@ describe('local-data forecast aggregation', () => {
 			],
 			new ForecastOptions()
 		);
-		expect(unrestricted.scenarioCount).toBe(46);
+		expect(unrestricted.scenarioCount).toBe(47);
 	});
 
 	it('reports insufficient eligible history without calculating empty percentiles', async () => {

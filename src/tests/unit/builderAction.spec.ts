@@ -27,6 +27,10 @@ async function submit(overrides: Record<string, string> = {}) {
 beforeEach(() => vi.clearAllMocks());
 
 describe('builder action constraints', () => {
+	it('passes the newly complete 2025 end year through to block selection', async () => {
+		await submit({ startYear: '2015', endYear: '2025' });
+		expect(selectPortfolioBlocks).toHaveBeenCalledWith(2015, 2025);
+	});
 	it.each([0, 3, 20, 21, 100])(
 		'passes the selected %s%% crypto limit to optimization',
 		async (limit) => {

@@ -1,4 +1,4 @@
-import { BlockData } from '$lib/block';
+import { BlockData, type MarketData } from '$lib/block';
 import { ModelReturns, type Allocation, type AnnualReturn } from '$lib/modelReturns';
 import { ForecastOptions } from '$lib/forecastOptions';
 import { ConstantRateReturns } from '$lib/constantRateReturns';
@@ -107,8 +107,13 @@ export class ForecastService {
 			]);
 			await Promise.all([cryptoAssetClass.loadAssets(db), powerLawFormula.loadFits(db)]);
 		}
-		const eligibleBlocks = BlockData.getEligibleBlockNumbers(
-			allocations.filter((asset) => asset.value > 0).map((asset) => asset.key)
+		const requiredData: (keyof MarketData)[] = allocations
+			.filter((asset) => asset.value > 0)
+			.map((asset) => asset.key);
+		if (options.inflationAdjusted) requiredData.push('inflation');
+		if (requiredData.includes('sp500')) requiredData.push('sp500DividendYield');
+		const eligibleBlocks = BlockData.getEligibleBlockNumbers(requiredData).filter(
+			(block) => !options.includeMoreIndexes || block >= 19
 		);
 		const blocksPerForecast = options.returnWindow / 10;
 		if (eligibleBlocks.length < blocksPerForecast) {

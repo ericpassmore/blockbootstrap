@@ -8,7 +8,7 @@
 	let error: string | null = null;
 
 	let startYear: number = 1988;
-	let endYear: number = 2024;
+	let endYear: number = 2025;
 	let returnType: 'nominal' | 'real' = 'nominal';
 </script>
 
@@ -74,7 +74,7 @@
 				id="startYear-range"
 				name="startYear"
 				min="1988"
-				max="2024"
+				max="2025"
 				bind:value={startYear}
 				required
 				style="max-width: 50%;"
@@ -89,7 +89,7 @@
 				id="startYear-number"
 				name="startYear"
 				min="1988"
-				max="2024"
+				max="2025"
 				bind:value={startYear}
 				required
 				on:input={() => {
@@ -112,7 +112,7 @@
 				id="endYear-range"
 				name="endYear"
 				min="1988"
-				max="2024"
+				max="2025"
 				bind:value={endYear}
 				required
 				style="max-width: 50%;"
@@ -127,7 +127,7 @@
 				id="endYear-number"
 				name="endYear"
 				min="1988"
-				max="2024"
+				max="2025"
 				bind:value={endYear}
 				required
 				on:input={() => {
